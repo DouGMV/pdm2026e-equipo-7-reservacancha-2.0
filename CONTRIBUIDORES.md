@@ -1,3 +1,4 @@
 # Contribuidores
 
 - Marco André Bolaños Rojas — Desarrollo del frontend UI — Flutter 3.47.6
+- Douglas Morales — Arquitectura / Líder técnico — Flutter 3.47.6
