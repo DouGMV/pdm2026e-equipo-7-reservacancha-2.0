@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:reservacancha/core/router/app_router.dart';
+import 'package:reservacancha/core/utils/validators.dart';
 
 /// Pantalla de inicio de sesión (issue #17).
 /// UI con datos de ejemplo: la validación y el envío se conectarán
@@ -40,10 +41,10 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
+                Icon(
                   Icons.sports_soccer,
                   size: 72,
-                  color: Color(0xFF2E7D32),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -53,15 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Correo electrónico',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.trim().isEmpty) {
-                      return 'Introduce el correo electrónico';
-                    }
-                    if (!valor.contains('@')) {
-                      return 'Introduce un correo electrónico válido';
-                    }
-                    return null;
-                  },
+                  validator: validarCorreo,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -71,15 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Contraseña',
                     prefixIcon: Icon(Icons.lock_outline),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'Introduce la contraseña';
-                    }
-                    if (valor.length < 6) {
-                      return 'La contraseña debe tener al menos 6 caracteres';
-                    }
-                    return null;
-                  },
+                  validator: validarContrasena,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
@@ -94,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => context.go(AppRoutes.registro),
+                  onPressed: () => context.push(AppRoutes.registro),
                   child: const Text('¿No tienes cuenta? Regístrate'),
                 ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:reservacancha/core/router/app_router.dart';
+import 'package:reservacancha/core/utils/validators.dart';
 
 /// Pantalla de registro (issue #17).
 /// UI con datos de ejemplo: la validación y el envío se conectarán
@@ -46,12 +47,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     labelText: 'Nombre completo',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.trim().isEmpty) {
-                      return 'Introduce tu nombre';
-                    }
-                    return null;
-                  },
+                  validator: (valor) =>
+                      validarRequerido(valor, mensaje: 'Introduce tu nombre'),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -61,15 +58,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     labelText: 'Correo electrónico',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.trim().isEmpty) {
-                      return 'Introduce el correo electrónico';
-                    }
-                    if (!valor.contains('@')) {
-                      return 'Introduce un correo electrónico válido';
-                    }
-                    return null;
-                  },
+                  validator: validarCorreo,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -78,15 +67,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     labelText: 'Teléfono',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.trim().isEmpty) {
-                      return 'Introduce tu teléfono';
-                    }
-                    if (valor.trim().length < 8) {
-                      return 'Introduce un teléfono válido (8 dígitos)';
-                    }
-                    return null;
-                  },
+                  validator: validarTelefono,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -96,15 +77,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                     labelText: 'Contraseña',
                     prefixIcon: Icon(Icons.lock_outline),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'Introduce la contraseña';
-                    }
-                    if (valor.length < 6) {
-                      return 'La contraseña debe tener al menos 6 caracteres';
-                    }
-                    return null;
-                  },
+                  validator: validarContrasena,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(

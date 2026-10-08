@@ -34,8 +34,14 @@ void main() {
   ) async {
     await abrirApp(tester);
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'ana@correo.com');
-    await tester.enterText(find.byType(TextFormField).at(1), 'secreta1');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Correo electrónico'),
+      'ana@correo.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Contraseña'),
+      'secreta1',
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Iniciar sesión'));
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();

@@ -44,10 +44,22 @@ void main() {
     await abrirApp(tester);
     await irARegistro(tester);
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'Ana López');
-    await tester.enterText(find.byType(TextFormField).at(1), 'ana@correo.com');
-    await tester.enterText(find.byType(TextFormField).at(2), '55551234');
-    await tester.enterText(find.byType(TextFormField).at(3), 'secreta1');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Nombre completo'),
+      'Ana López',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Correo electrónico'),
+      'ana@correo.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Teléfono'),
+      '55551234',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Contraseña'),
+      'secreta1',
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Crear cuenta'));
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();
