@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/presentation/admin_canchas_screen.dart';
-import '../../features/admin/presentation/admin_reservas_screen.dart';
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/auth/presentation/registro_screen.dart';
-import '../../features/canchas/presentation/canchas_screen.dart';
-import '../../features/canchas/presentation/detalle_cancha_screen.dart';
-import '../../features/perfil/presentation/perfil_screen.dart';
-import '../../features/reservas/presentation/confirmar_reserva_screen.dart';
-import '../../features/reservas/presentation/mis_reservas_screen.dart';
+import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
+import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
+import 'package:reservacancha/features/auth/presentation/login_screen.dart';
+import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
+import 'package:reservacancha/features/canchas/presentation/canchas_screen.dart';
+import 'package:reservacancha/features/canchas/presentation/detalle_cancha_screen.dart';
+import 'package:reservacancha/features/perfil/presentation/perfil_screen.dart';
+import 'package:reservacancha/features/reservas/presentation/confirmar_reserva_screen.dart';
+import 'package:reservacancha/features/reservas/presentation/mis_reservas_screen.dart';
 
 /// Rutas de la app (ver docs/ARQUITECTURA.md).
 abstract final class AppRoutes {
