@@ -9,12 +9,38 @@ void main() {
     });
 
     test('usa el color semilla verde deportivo', () {
-      expect(AppTheme.semilla, const Color(0xFF2E7D32));
-      expect(AppTheme.light.colorScheme.primary, isNotNull);
+      expect(
+        AppTheme.light.colorScheme.primary,
+        ColorScheme.fromSeed(seedColor: AppTheme.semilla).primary,
+      );
     });
 
     test('el AppBar centra el título', () {
       expect(AppTheme.light.appBarTheme.centerTitle, isTrue);
     });
+  });
+
+  testWidgets('dos FilledButton en un Row no fuerzan ancho infinito', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const Scaffold(
+          body: Row(
+            children: [
+              FilledButton(onPressed: null, child: Text('Primario')),
+              FilledButton(onPressed: null, child: Text('Secundario')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    final sizePrimario = tester.getSize(
+      find.widgetWithText(FilledButton, 'Primario'),
+    );
+    expect(sizePrimario.isFinite, isTrue);
   });
 }

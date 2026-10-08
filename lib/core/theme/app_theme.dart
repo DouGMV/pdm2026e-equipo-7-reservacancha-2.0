@@ -10,7 +10,7 @@ abstract final class AppTheme {
     colorScheme: ColorScheme.fromSeed(seedColor: semilla),
     appBarTheme: const AppBarTheme(centerTitle: true),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+      style: FilledButton.styleFrom(minimumSize: const Size(64, 48)),
     ),
   );
 }
