@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol == 'admin';
+    }
+
+    match /usuarios/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      // Todo registro nuevo es cliente
+      allow create: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.rol == 'cliente';
+      // El usuario edita sus datos pero no puede cambiar su rol
+      allow update: if isSignedIn() && request.auth.uid == uid
+                    && request.resource.data.rol == resource.data.rol;
+    }
+
+    match /canchas/{canchaId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /reservas/{reservaId} {
+      // Lectura necesaria para calcular disponibilidad
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+                    && request.resource.data.usuarioId == request.auth.uid
+                    && request.resource.data.estado == 'confirmada';
+
+      allow update: if isSignedIn() && (
+        // Volver a reservar un horario que había sido cancelado
+        (resource.data.estado == 'cancelada'
+          && request.resource.data.usuarioId == request.auth.uid
+          && request.resource.data.estado == 'confirmada')
+        ||
+        // El dueño cancela su propia reserva (solo cambia el estado)
+        (resource.data.usuarioId == request.auth.uid
+          && request.resource.data.estado == 'cancelada'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado']))
+        ||
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+  }
+}
