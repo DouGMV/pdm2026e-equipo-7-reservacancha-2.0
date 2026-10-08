@@ -11,6 +11,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.text('Inicio de sesión'), findsOneWidget);
+    expect(find.text('Correo electrónico'), findsOneWidget);
   });
 }
