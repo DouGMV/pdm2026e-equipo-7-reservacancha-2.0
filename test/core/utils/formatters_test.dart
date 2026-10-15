@@ -25,4 +25,14 @@ void main() {
       expect(formatearFecha(DateTime(2026, 1, 5)), '2026-01-05');
     });
   });
+
+  group('formatearHora', () {
+    test('usa el formato HH:00', () {
+      expect(formatearHora(18), '18:00');
+    });
+
+    test('completa con cero las horas de un dígito', () {
+      expect(formatearHora(7), '07:00');
+    });
+  });
 }
