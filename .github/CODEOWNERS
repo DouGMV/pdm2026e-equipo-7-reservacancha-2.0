@@ -1,0 +1,17 @@
+# Quién revisa qué (ver docs/ROLES.md). Con "Require review from Code Owners"
+# en el ruleset de main, GitHub pide la aprobación de al menos una de estas
+# personas. Si varias reglas coinciden con un archivo, gana la última.
+# Formato: <ruta> <@usuario>
+
+# Áreas generales (raíz, docs, .github, core, pruebas): cualquier integrante
+# puede aprobar. Así los PRs de Douglas también tienen quién los apruebe.
+*                              @DouGMV @NathalyR15 @julianeduardo512-del @AngelOvalle29 @Lilfacce
+
+# Áreas por rol: Douglas (líder técnico) + responsables del área
+/lib/features/*/data/          @DouGMV @julianeduardo512-del @NathalyR15
+/lib/features/*/domain/        @DouGMV @julianeduardo512-del @AngelOvalle29
+/lib/features/*/presentation/  @DouGMV @Lilfacce @AngelOvalle29
+/lib/core/router/              @DouGMV @AngelOvalle29
+/lib/core/theme/               @DouGMV @Lilfacce
+/lib/core/widgets/             @DouGMV @Lilfacce
+/firestore.rules               @DouGMV @NathalyR15
