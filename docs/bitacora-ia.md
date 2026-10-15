@@ -17,6 +17,19 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Resolver el issue #24 en la rama `feat/24-estados-canchas` desde `develop`: entidad, contrato, repositorio falso, `canchasProvider` sin reintento automático, `CanchasScreen` con los cuatro estados y la prueba error → Reintentar → datos, respetando `docs/ARQUITECTURA.md`."
+- **Resultado:** la entidad `Cancha`, `CanchasRepository`, `CanchasRepositoryFake` con 5 canchas, `canchasRepositoryProvider`, `canchasProvider`, la pantalla y 4 pruebas de widget.
+- **Aceptado:** la separación por capas, `retry: (_, _) => null` y un repositorio de prueba controlable (que puede fallar, quedar vacío o ser lento) inyectado con `overrideWithValue`.
+- **Rechazado / corregido:**
+  - Con `AsyncValue.when` por defecto, al tocar **Reintentar** el mensaje de error seguía visible hasta que llegaba la respuesta, y el botón parecía no hacer nada. Se usó `skipLoadingOnRefresh: false` y se agregó una prueba que comprueba que aparece el indicador de carga al reintentar.
+  - El `canchasRepositoryProvider` se dejó en su propio archivo de `data/`, separado del repositorio falso, para que al llegar Firestore solo cambie esa línea.
+  - Se dejaron fuera el filtro por deporte y la navegación al detalle, porque el issue los deja para el Sprint 1/2.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 14 pruebas en verde en local.
+- **Commit / PR:** issue #24.
+
 ## 2026-10-15 · @DouGMV — Laboratorio S14, Parte A (CI, CODEOWNERS y bitácora)
 
 - **Herramienta:** Claude Code.
