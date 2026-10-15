@@ -1,3 +1,5 @@
+# CI de ReservaCancha: cada push y cada Pull Request se verifica en una
+# máquina limpia, con la misma versión de Flutter que usa el equipo.
 name: CI
 
 on:
@@ -5,10 +7,19 @@ on:
     branches: [develop, main]
   push:
     branches: [develop, main]
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+
+# Si se hace push dos veces seguidas a la misma rama, se cancela la corrida vieja.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  analyze-and-test:
+  calidad:
+    # Este nombre es el check requerido en las reglas de main y develop.
+    name: Formato, análisis y pruebas
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -19,14 +30,14 @@ jobs:
           flutter-version: 3.47.6
           cache: true
 
-      - name: Instalar dependencias
+      - name: Dependencias
         run: flutter pub get
 
-      - name: Verificar formato
+      - name: Formato (dart format)
         run: dart format --output=none --set-exit-if-changed .
 
-      - name: Análisis estático
+      - name: Análisis estático (flutter analyze)
         run: flutter analyze
 
-      - name: Pruebas
-        run: flutter test
+      - name: Pruebas (flutter test)
+        run: flutter test --reporter expanded
