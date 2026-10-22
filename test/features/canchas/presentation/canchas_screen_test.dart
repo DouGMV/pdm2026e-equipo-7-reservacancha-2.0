@@ -13,13 +13,19 @@ class _CanchasRepositoryControlable implements CanchasRepository {
   Duration demora = Duration.zero;
 
   @override
-  Future<List<Cancha>> obtenerCanchas() async {
+  Future<List<Cancha>> obtenerCanchas({String? deporte}) async {
     await Future<void>.delayed(demora);
     if (fallar) {
       throw Exception('sin conexión');
     }
     return canchas;
   }
+
+  @override
+  Future<void> eliminar(String id) async {}
+
+  @override
+  Future<void> restaurar(Cancha cancha) async {}
 }
 
 const _cancha = Cancha(

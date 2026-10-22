@@ -17,6 +17,19 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-22 · @Lilfacce — Laboratorio S15 (gestión de canchas: filtro y eliminar con Deshacer)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del issue #31 en `feat/31-filtro`: `AdminCanchasScreen` con chips de deporte reutilizables, los estados de la S14, `Dismissible` con `key` = id que borra primero en el repositorio, SnackBar con Deshacer y las pruebas de widget. La capa de datos la hace Nathaly; usar los nombres acordados con ella."
+- **Resultado:** la pantalla, `FiltroDeporteChips`, `MensajeConAccion` en `core/widgets`, `FiltroCanchas`, `filtroCanchasProvider`, `adminCanchasProvider` y 4 pruebas de widget.
+- **Aceptado:** el filtro inmutable con `==`; los chips y el catálogo de deportes reutilizables para el #18; mover `MensajeConAccion` a `core/widgets` (se usa en dos pantallas).
+- **Rechazado / corregido:**
+  - El prompt que se le dio a Nathaly pedía `adminCanchasProvider` como `FutureProvider`. Con eso, al terminar de deslizar, la fila seguía en la lista hasta volver a consultar, y Flutter lanza "A dismissed Dismissible widget is still part of the tree". Se cambió a un `AsyncNotifier` con `eliminar` (borra en el repositorio dentro de `confirmDismiss`) y `quitarDeLaLista` (la quita de inmediato en `onDismissed`).
+  - En nuestra versión de Flutter, un `SnackBar` con acción no se cierra solo (`persist` vale `true` si hay acción), así que el mensaje de Deshacer se quedaba para siempre. Se usó `persist: false`.
+  - El repositorio en memoria (`eliminar` y `restaurar`) se dejó como pendiente para Nathaly, en lugar de que la IA hiciera también su parte.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 26 pruebas en verde en local.
+- **Commit / PR:** issue #31.
+
 ## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
 
 - **Herramienta:** Claude Code.

@@ -9,9 +9,26 @@ class CanchasRepositoryFake implements CanchasRepository {
   final Duration demora;
 
   @override
-  Future<List<Cancha>> obtenerCanchas() async {
+  Future<List<Cancha>> obtenerCanchas({String? deporte}) async {
     await Future<void>.delayed(demora);
-    return _canchasDeEjemplo;
+    return [
+      for (final cancha in _canchasDeEjemplo)
+        if (deporte == null || cancha.deporte == deporte) cancha,
+    ];
+  }
+
+  // TODO(#31): Nathaly implementa eliminar y restaurar sobre una lista en
+  // memoria. Mientras tanto fallan, y la pantalla devuelve la fila.
+  @override
+  Future<void> eliminar(String id) async {
+    await Future<void>.delayed(demora);
+    throw UnimplementedError('eliminar pendiente (#31)');
+  }
+
+  @override
+  Future<void> restaurar(Cancha cancha) async {
+    await Future<void>.delayed(demora);
+    throw UnimplementedError('restaurar pendiente (#31)');
   }
 }
 
