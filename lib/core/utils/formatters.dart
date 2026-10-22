@@ -17,3 +17,32 @@ String formatearFecha(DateTime fecha) => _formatoFecha.format(fecha);
 
 /// Formatea la hora de inicio de un bloque de reserva, por ejemplo `7` → `07:00`.
 String formatearHora(int hora) => '${hora.toString().padLeft(2, '0')}:00';
+
+const List<String> _nombresDeMes = [
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
+];
+
+/// Formatea un mes en formato `yyyy-MM` como `Octubre 2026`. Si el valor no
+/// tiene ese formato se devuelve tal cual para no romper la pantalla.
+String formatearMes(String anioMes) {
+  final partes = anioMes.split('-');
+  if (partes.length < 2) {
+    return anioMes;
+  }
+  final mes = int.tryParse(partes[1]);
+  if (mes == null || mes < 1 || mes > 12) {
+    return anioMes;
+  }
+  return '${_nombresDeMes[mes - 1]} ${partes[0]}';
+}

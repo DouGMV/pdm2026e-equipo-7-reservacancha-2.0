@@ -31,3 +31,9 @@ class Reserva {
   final EstadoReserva estado;
   final num total;
 }
+
+/// Ordena de la reserva más reciente a la más antigua, por fecha y hora.
+int reservaMasRecientePrimero(Reserva a, Reserva b) {
+  final porFecha = b.fecha.compareTo(a.fecha);
+  return porFecha != 0 ? porFecha : b.hora.compareTo(a.hora);
+}
