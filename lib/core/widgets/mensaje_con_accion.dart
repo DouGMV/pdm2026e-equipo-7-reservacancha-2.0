@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Mensaje centrado con un icono y un botón, para los estados de error y
-/// vacío de los listados.
+/// Ícono, mensaje y un botón: para los estados de error y vacío de los
+/// listados.
 class MensajeConAccion extends StatelessWidget {
   const MensajeConAccion({
     super.key,
