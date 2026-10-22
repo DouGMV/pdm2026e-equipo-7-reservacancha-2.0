@@ -14,3 +14,6 @@ String formatearMoneda(num monto) => _formatoMoneda.format(monto);
 
 /// Formatea una fecha como `yyyy-MM-dd`, el formato usado en Firestore.
 String formatearFecha(DateTime fecha) => _formatoFecha.format(fecha);
+
+/// Formatea la hora de inicio de un bloque de reserva, por ejemplo `7` → `07:00`.
+String formatearHora(int hora) => '${hora.toString().padLeft(2, '0')}:00';
