@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
+import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_providers.dart';
 
@@ -20,14 +23,14 @@ class CanchasScreen extends ConsumerWidget {
       body: canchas.when(
         skipLoadingOnRefresh: false,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _MensajeConAccion(
+        error: (error, stackTrace) => MensajeConAccion(
           icono: Icons.cloud_off,
           mensaje: 'No pudimos cargar las canchas.',
           accion: 'Reintentar',
           alPresionar: recargar,
         ),
         data: (canchas) => canchas.isEmpty
-            ? _MensajeConAccion(
+            ? MensajeConAccion(
                 icono: Icons.sports_soccer,
                 mensaje: 'Aún no hay canchas disponibles.',
                 accion: 'Actualizar',
@@ -55,42 +58,9 @@ class _ListaCanchas extends StatelessWidget {
           title: Text(cancha.nombre),
           subtitle: Text(_nombreDeporte(cancha.deporte)),
           trailing: Text('${formatearMoneda(cancha.precioPorHora)}/h'),
+          onTap: () => context.push(AppRoutes.detalleDeCancha(cancha.id)),
         );
       },
-    );
-  }
-}
-
-class _MensajeConAccion extends StatelessWidget {
-  const _MensajeConAccion({
-    required this.icono,
-    required this.mensaje,
-    required this.accion,
-    required this.alPresionar,
-  });
-
-  final IconData icono;
-  final String mensaje;
-  final String accion;
-  final VoidCallback alPresionar;
-
-  @override
-  Widget build(BuildContext context) {
-    final colores = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, size: 48, color: colores.primary),
-            const SizedBox(height: 16),
-            Text(mensaje, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: alPresionar, child: Text(accion)),
-          ],
-        ),
-      ),
     );
   }
 }

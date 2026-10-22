@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:reservacancha/core/router/app_router.dart';
+import 'package:reservacancha/core/navigation/navegacion_provider.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
+import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
 
@@ -21,18 +21,19 @@ class MisReservasScreen extends ConsumerWidget {
       body: reservas.when(
         skipLoadingOnRefresh: false,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _MensajeConAccion(
+        error: (error, stackTrace) => MensajeConAccion(
           icono: Icons.cloud_off,
           mensaje: 'No pudimos cargar tus reservas.',
           accion: 'Reintentar',
           alPresionar: () => ref.invalidate(misReservasProvider),
         ),
         data: (reservas) => reservas.isEmpty
-            ? _MensajeConAccion(
+            ? MensajeConAccion(
                 icono: Icons.event_available,
                 mensaje: 'Aún no tienes reservas.',
                 accion: 'Ver canchas',
-                alPresionar: () => context.go(AppRoutes.canchas),
+                alPresionar: () =>
+                    ref.read(navegacionProvider.notifier).irA(Pestana.canchas),
               )
             : _ListaReservas(reservas: reservas),
       ),
@@ -72,40 +73,6 @@ class _ListaReservas extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _MensajeConAccion extends StatelessWidget {
-  const _MensajeConAccion({
-    required this.icono,
-    required this.mensaje,
-    required this.accion,
-    required this.alPresionar,
-  });
-
-  final IconData icono;
-  final String mensaje;
-  final String accion;
-  final VoidCallback alPresionar;
-
-  @override
-  Widget build(BuildContext context) {
-    final colores = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, size: 48, color: colores.primary),
-            const SizedBox(height: 16),
-            Text(mensaje, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: alPresionar, child: Text(accion)),
-          ],
-        ),
-      ),
     );
   }
 }
