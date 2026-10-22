@@ -14,7 +14,7 @@ import 'package:reservacancha/features/reservas/data/reservas_repository_provide
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
 
-class _CanchasFalsas implements CanchasRepository {
+class _CanchasFalsas extends Fake implements CanchasRepository {
   @override
   Future<List<Cancha>> obtenerCanchas() async => [
     for (var i = 1; i <= 20; i++)
@@ -34,7 +34,7 @@ class _CanchasFalsas implements CanchasRepository {
 }
 
 /// Sin reservas: así Mis reservas muestra el estado vacío con "Ver canchas".
-class _ReservasFalsas implements ReservasRepository {
+class _ReservasFalsas extends Fake implements ReservasRepository {
   @override
   Future<List<Reserva>> obtenerMisReservas() async => const [];
 }
