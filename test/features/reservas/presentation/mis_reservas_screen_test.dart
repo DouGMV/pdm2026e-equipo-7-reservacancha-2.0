@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:reservacancha/core/router/app_router.dart';
+import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
@@ -37,31 +36,14 @@ const _reserva = Reserva(
   total: 150,
 );
 
-/// Monta la pantalla con un router mínimo para poder probar "Ver canchas".
 Future<void> _mostrarPantalla(
   WidgetTester tester,
   ReservasRepository repositorio,
 ) {
-  final router = GoRouter(
-    initialLocation: AppRoutes.misReservas,
-    routes: [
-      GoRoute(
-        path: AppRoutes.misReservas,
-        builder: (context, state) => const MisReservasScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.canchas,
-        builder: (context, state) =>
-            const Scaffold(body: Text('Listado de canchas')),
-      ),
-    ],
-  );
-  addTearDown(router.dispose);
-
   return tester.pumpWidget(
     ProviderScope(
       overrides: [reservasRepositoryProvider.overrideWithValue(repositorio)],
-      child: MaterialApp.router(routerConfig: router),
+      child: const MaterialApp(home: MisReservasScreen()),
     ),
   );
 }
@@ -153,10 +135,15 @@ void main() {
 
     expect(find.text('Aún no tienes reservas.'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Ver canchas'));
-    await tester.pumpAndSettle();
+    final contenedor = ProviderScope.containerOf(
+      tester.element(find.byType(MisReservasScreen)),
+    );
+    contenedor.read(navegacionProvider.notifier).ir(Pestana.misReservas);
 
-    expect(find.text('Listado de canchas'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Ver canchas'));
+    await tester.pump();
+
+    expect(contenedor.read(navegacionProvider), Pestana.canchas);
   });
 
   testWidgets('distingue las reservas canceladas', (tester) async {

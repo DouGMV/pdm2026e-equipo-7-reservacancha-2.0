@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:reservacancha/core/router/app_router.dart';
+import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
@@ -32,7 +31,9 @@ class MisReservasScreen extends ConsumerWidget {
                 icono: Icons.event_available,
                 mensaje: 'Aún no tienes reservas.',
                 accion: 'Ver canchas',
-                alPresionar: () => context.go(AppRoutes.canchas),
+                // Navega cambiando la pestaña activa, sin callbacks.
+                alPresionar: () =>
+                    ref.read(navegacionProvider.notifier).ir(Pestana.canchas),
               )
             : _ListaReservas(reservas: reservas),
       ),

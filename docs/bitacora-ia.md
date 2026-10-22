@@ -17,6 +17,20 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-22 · @DouGMV — Laboratorio S15, navegación con barra inferior
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Implementar el requisito 1 y 2 del laboratorio S15 (issue #30) adaptado a nuestro proyecto, que ya usa go_router: pestaña activa en un `Notifier`, pantallas en un `IndexedStack`, 'Próximamente' para lo que no existe y navegación desde otra pantalla cambiando el provider. Seguir el ejemplo de inkash (`s15-01-navegacion`)."
+- **Resultado:** `navegacionProvider` (`Pestana`), `InicioShell` con `NavigationBar` e `IndexedStack` en la ruta `/`, pestaña Admin con accesos a Gestión de canchas y Reservas, `Proximamente` para Perfil, y 4 pruebas de widget.
+- **Aceptado:** el `IndexedStack` dentro de la ruta `/` de go_router: cumple la rúbrica (pestaña en un provider) sin perder go_router para login, detalle y admin.
+- **Rechazado / corregido:**
+  - Se evaluó usar `StatefulShellRoute.indexedStack` de go_router; se descartó porque la pestaña no viviría en un provider, que es lo que pide la rúbrica.
+  - `/mis-reservas` y `/perfil` dejaron de ser rutas sueltas: navegar a ellas mostraba la pantalla sin la barra. Ahora son pestañas.
+  - "Ver canchas" en Mis reservas usaba `context.go`; se cambió por `navegacionProvider.notifier.ir(Pestana.canchas)`.
+  - La prueba de scroll se verificó reemplazando temporalmente el `IndexedStack` por un cambio simple de pantalla: la prueba falla, así que sí protege el comportamiento.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 26 pruebas en verde.
+- **Commit / PR:** issue #30.
+
 ## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
 
 - **Herramienta:** Claude Code.
