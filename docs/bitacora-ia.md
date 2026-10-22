@@ -15,6 +15,25 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-22 · @NathalyR15 — Laboratorio S15 (repositorio de canchas en memoria: eliminar y restaurar)
+
+- **Herramienta:** Claude (chat, paso a paso; no tengo Claude Code).
+- **Especificación:** el prompt del equipo para Claude Code (parte de datos y lógica del issue #31), adaptado a una conversación en chat. Después de la actualización del equipo, mi parte quedó en implementar `eliminar` y `restaurar` en `canchas_repository_fake.dart` (donde estaba el `TODO(#31)`) y las pruebas unitarias del repositorio. Se trabajó sobre la rama `feat/31-filtro`, sin crear otra. No se tocó la pantalla, el router ni `adminCanchasProvider`.
+- **Resultado:** `CanchasRepositoryFake` con una lista en memoria copiada de las 5 canchas de ejemplo; `eliminar` por id y `restaurar` en su posición original; `canchasRepositoryProvider` con una sola instancia; y 12 pruebas unitarias nuevas.
+- **Aceptado:**
+  - Lista en memoria con `Future.delayed`, tal como pedía el issue.
+  - `restaurar` calcula la posición con el orden de la lista de ejemplo y no duplica si el id ya existe.
+  - `eliminar` con un id inexistente lanza `StateError`, y las pruebas comprueban que la lista no cambia.
+  - No hizo falta cambiar `canchas_screen_test.dart`: lo leí y ya trae `eliminar` y `restaurar` en su repositorio de prueba.
+- **Rechazado / corregido:**
+  - El primer plan de la IA creaba la rama `feat/31-filtro`, pero ya existía en GitHub. Hice `git fetch --prune` y `git switch` a la existente.
+  - Al quitar `const` del constructor (ahora el repositorio tiene estado), el provider dejó de compilar: `The constructor being called isn't a const constructor`. Lo detecté en VS Code y quité el `const` del provider.
+  - El comando `code ...` que me dio la IA para crear el archivo de pruebas solo abría una pestaña vacía y no lo creaba. Lo creé con `New-Item`.
+  - Borré `test/features/canchas/data/.gitkeep`, porque la carpeta ya tiene un archivo real.
+  - Me quedé con `StateError` para el id inexistente, sin definir una excepción propia, porque el contrato no la pide y no agregamos clases de más.
+  - `dart format .` reformateó dos archivos, y los dejé así antes del commit.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y `flutter test` con las 38 pruebas en verde. Corrí aparte las pruebas del repositorio (12 en verde) para confirmar que mi archivo se ejecutaba.
+- **Commit / PR:** `eb80291`, issue #31.
 ---
 
 ## 2026-10-22 · @Lilfacce — Laboratorio S15 (gestión de canchas: filtro y eliminar con Deshacer)
