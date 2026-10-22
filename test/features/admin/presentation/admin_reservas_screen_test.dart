@@ -14,6 +14,7 @@ class _ReservasEnMemoria extends Fake implements ReservasRepository {
   final List<EstadoReserva?> consultas = [];
   bool fallarConsulta = false;
   bool fallarEliminar = false;
+  bool fallarRestaurar = false;
 
   @override
   Future<List<Reserva>> obtenerReservas({EstadoReserva? estado}) async {
@@ -32,7 +33,10 @@ class _ReservasEnMemoria extends Fake implements ReservasRepository {
   }
 
   @override
-  Future<void> restaurar(Reserva reserva) async => reservas.add(reserva);
+  Future<void> restaurar(Reserva reserva) async {
+    if (fallarRestaurar) throw Exception('sin conexión');
+    reservas.add(reserva);
+  }
 }
 
 const _sintetica = Reserva(
@@ -86,9 +90,15 @@ Future<void> _tocarChip(WidgetTester tester, String etiqueta) async {
   await tester.pumpAndSettle();
 }
 
-/// Deja que el SnackBar termine de mostrarse para no dejar timers pendientes.
+/// Espera la duración del SnackBar y comprueba que se cerró solo.
 Future<void> _cerrarSnackBar(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 5));
+  await tester.pumpAndSettle();
+  expect(find.byType(SnackBar), findsNothing);
+}
+
+Future<void> _deslizar(WidgetTester tester, String id) async {
+  await tester.drag(find.byKey(ValueKey(id)), const Offset(-600, 0));
   await tester.pumpAndSettle();
 }
 
@@ -198,6 +208,69 @@ void main() {
     expect(find.text('Cancha Sintética 1'), findsOneWidget);
     expect(repositorio.reservas, hasLength(2));
     expect(find.text('No se pudo eliminar la reserva.'), findsOneWidget);
+
+    await _cerrarSnackBar(tester);
+  });
+
+  testWidgets('el SnackBar de Deshacer se cierra solo', (tester) async {
+    final repositorio = _ReservasEnMemoria([_sintetica, _padel]);
+    await _mostrarPantalla(tester, repositorio);
+
+    await _deslizar(tester, _sintetica.id);
+    expect(
+      find.text('Reserva de Cancha Sintética 1 eliminada'),
+      findsOneWidget,
+    );
+
+    await _cerrarSnackBar(tester);
+  });
+
+  testWidgets('dos borrados seguidos: Deshacer restaura el último', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([
+      _sintetica,
+      _padel,
+      _polideportivo,
+    ]);
+    await _mostrarPantalla(tester, repositorio);
+
+    await _deslizar(tester, _sintetica.id);
+    await _deslizar(tester, _padel.id);
+
+    // El segundo mensaje reemplaza al primero en lugar de quedar en cola.
+    expect(
+      find.text('Reserva de Pádel Club Mesoamericana eliminada'),
+      findsOneWidget,
+    );
+    expect(find.text('Reserva de Cancha Sintética 1 eliminada'), findsNothing);
+
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pádel Club Mesoamericana'), findsOneWidget);
+    expect(find.text('Cancha Sintética 1'), findsNothing);
+    expect(
+      repositorio.reservas.map((r) => r.id),
+      containsAll([_padel.id, _polideportivo.id]),
+    );
+
+    await _cerrarSnackBar(tester);
+  });
+
+  testWidgets('si restaurar falla, avisa y la reserva no vuelve', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([_sintetica, _padel])
+      ..fallarRestaurar = true;
+    await _mostrarPantalla(tester, repositorio);
+
+    await _deslizar(tester, _sintetica.id);
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No se pudo restaurar la reserva.'), findsOneWidget);
+    expect(find.text('Cancha Sintética 1'), findsNothing);
 
     await _cerrarSnackBar(tester);
   });

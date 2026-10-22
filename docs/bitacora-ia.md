@@ -28,7 +28,8 @@ qué especificaste, qué revisaste y qué rechazaste.
   - `MensajeConAccion` ya estaba copiado en dos pantallas; en lugar de una tercera copia se creó en `core/widgets` (las otras dos se pueden migrar después).
   - El repositorio falso de la prueba de Mis reservas se cambió a `extends Fake implements ReservasRepository` para que no deje de compilar cada vez que crece el contrato.
   - Se verificó la prueba del filtro cambiando temporalmente `ref.watch` por `ref.read`: las dos pruebas del filtro fallan, así que sí comprueban que la lista depende del filtro.
-- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 27 pruebas en verde. Limitación: con la lista en memoria, lo eliminado no sobrevive a cerrar la app (validación 6 del laboratorio); llegará con Firestore.
+  - **Detectado en la revisión de Marco, no por la IA:** en Flutter 3.47 un `SnackBar` con acción usa `persist: true` por defecto, así que el mensaje de Deshacer no se cerraba y el de un segundo borrado quedaba en cola. Se corrigió con `persist: false` y `hideCurrentSnackBar()`, y se agregaron pruebas que comprueban que el mensaje se cierra y que dos borrados seguidos muestran el segundo Deshacer (la prueba falla si se quita `persist: false`). Por sugerencia de la misma revisión, `restaurar` avisa si falla y la fila se quita en `onDismissed` para que se vea la animación.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 30 pruebas en verde. Limitación: con la lista en memoria, lo eliminado no sobrevive a cerrar la app (validación 6 del laboratorio); llegará con Firestore.
 - **Commit / PR:** issue #32.
 
 ## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)

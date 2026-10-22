@@ -51,24 +51,26 @@ class ReservasAdminController extends AsyncNotifier<List<Reserva>> {
         .obtenerReservas(estado: filtro.estado);
   }
 
-  /// Elimina primero en el repositorio. Si falla, la excepción llega a la
-  /// pantalla y la lista no cambia.
-  Future<void> eliminar(Reserva reserva) async {
-    await ref.read(reservasRepositoryProvider).eliminar(reserva.id);
+  /// Elimina en el repositorio. Si falla, la excepción llega a la pantalla y
+  /// la lista no cambia.
+  Future<void> eliminar(Reserva reserva) =>
+      ref.read(reservasRepositoryProvider).eliminar(reserva.id);
+
+  /// Quita la reserva de la lista sin volver a consultar. Se llama cuando el
+  /// `Dismissible` terminó de deslizarse: la fila debe salir del árbol.
+  void quitarDeLaLista(Reserva reserva) {
     final actuales = state.value;
-    if (actuales != null) {
-      state = AsyncData([
-        for (final r in actuales)
-          if (r.id != reserva.id) r,
-      ]);
-    }
+    if (actuales == null) return;
+    state = AsyncData([
+      for (final r in actuales)
+        if (r.id != reserva.id) r,
+    ]);
   }
 
   /// Restaura la reserva idéntica (mismo id) y vuelve a consultar con el
   /// filtro actual.
   Future<void> restaurar(Reserva reserva) async {
     await ref.read(reservasRepositoryProvider).restaurar(reserva);
-    ref.invalidateSelf();
-    await future;
+    if (ref.mounted) ref.invalidateSelf();
   }
 }

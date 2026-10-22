@@ -131,28 +131,59 @@ class _ReservaDeslizable extends ConsumerWidget {
       // la fila regresa a su lugar.
       confirmDismiss: (_) async {
         final mensajes = ScaffoldMessenger.of(context);
-        final controller = ref.read(reservasAdminProvider.notifier);
         try {
-          await controller.eliminar(reserva);
-          mensajes.showSnackBar(
-            SnackBar(
-              content: Text('Reserva de ${reserva.canchaNombre} eliminada'),
-              action: SnackBarAction(
-                label: 'Deshacer',
-                onPressed: () => controller.restaurar(reserva),
-              ),
-            ),
-          );
+          await ref.read(reservasAdminProvider.notifier).eliminar(reserva);
           return true;
         } on Exception {
-          mensajes.showSnackBar(
+          _mostrar(
+            mensajes,
             const SnackBar(content: Text('No se pudo eliminar la reserva.')),
           );
           return false;
         }
       },
+      // La fila sale de la lista cuando termina la animación de deslizar.
+      onDismissed: (_) {
+        final mensajes = ScaffoldMessenger.of(context);
+        final controller = ref.read(reservasAdminProvider.notifier)
+          ..quitarDeLaLista(reserva);
+        _mostrar(
+          mensajes,
+          SnackBar(
+            content: Text('Reserva de ${reserva.canchaNombre} eliminada'),
+            // Con una acción, el SnackBar no se cierra solo por defecto y el
+            // de un segundo borrado quedaría en cola sin poder deshacerse.
+            persist: false,
+            action: SnackBarAction(
+              label: 'Deshacer',
+              onPressed: () => _restaurar(controller, mensajes),
+            ),
+          ),
+        );
+      },
       child: _FilaReserva(reserva: reserva),
     );
+  }
+
+  Future<void> _restaurar(
+    ReservasAdminController controller,
+    ScaffoldMessengerState mensajes,
+  ) async {
+    try {
+      await controller.restaurar(reserva);
+    } on Exception {
+      _mostrar(
+        mensajes,
+        const SnackBar(content: Text('No se pudo restaurar la reserva.')),
+      );
+    }
+  }
+
+  /// Reemplaza el mensaje actual: cada borrado muestra su propio Deshacer.
+  void _mostrar(ScaffoldMessengerState mensajes, SnackBar snackBar) {
+    mensajes
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
   }
 }
 
