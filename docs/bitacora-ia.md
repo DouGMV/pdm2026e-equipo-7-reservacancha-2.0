@@ -17,6 +17,20 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-22 · @DouGMV — Laboratorio S15, reservas (admin) con filtro y eliminar con Deshacer
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Resolver el issue #32 (pareja Julian–Douglas; Angel no disponible): en `AdminReservasScreen`, filtro inmutable por estado en un `Notifier`, lista que hace `ref.watch` del filtro, estados de la S14, `Dismissible` con key = id que borra primero en el repositorio y SnackBar con Deshacer que restaura la reserva idéntica. Seguir el patrón de inkash (`s15-03-historial`, `s15-04-eliminar`) y comprobar que las pruebas detectan errores reales."
+- **Resultado:** `ReservasRepository` con `obtenerReservas`, `eliminar` y `restaurar`; repositorio simulado sobre una lista en memoria; `FiltroReservas`, `filtroReservasProvider` y `reservasAdminProvider` (`AsyncNotifier`); la pantalla; `MensajeConAccion` en `core/widgets`; 5 pruebas de widget.
+- **Aceptado:** el `AsyncNotifier` con `build` que observa el filtro y los métodos `eliminar` (quita la fila del estado solo si el repositorio respondió bien) y `restaurar` (vuelve a consultar con el filtro actual).
+- **Rechazado / corregido:**
+  - El borrado se eligió en las pantallas de **admin** y no en las del cliente: según `docs/ARQUITECTURA.md` y `firestore.rules`, el cliente cancela, solo el admin elimina.
+  - `MensajeConAccion` ya estaba copiado en dos pantallas; en lugar de una tercera copia se creó en `core/widgets` (las otras dos se pueden migrar después).
+  - El repositorio falso de la prueba de Mis reservas se cambió a `extends Fake implements ReservasRepository` para que no deje de compilar cada vez que crece el contrato.
+  - Se verificó la prueba del filtro cambiando temporalmente `ref.watch` por `ref.read`: las dos pruebas del filtro fallan, así que sí comprueban que la lista depende del filtro.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 27 pruebas en verde. Limitación: con la lista en memoria, lo eliminado no sobrevive a cerrar la app (validación 6 del laboratorio); llegará con Firestore.
+- **Commit / PR:** issue #32.
+
 ## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
 
 - **Herramienta:** Claude Code.
