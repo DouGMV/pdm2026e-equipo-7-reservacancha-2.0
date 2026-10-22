@@ -2,34 +2,63 @@ import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
 
 /// Repositorio con datos de ejemplo mientras no exista la implementación con
-/// Firestore. Simula la demora de la red con [Future.delayed].
+/// Firestore. Trabaja sobre una lista en memoria y simula la demora de la red
+/// con [Future.delayed].
+///
+/// Cada instancia parte de una copia de las canchas de ejemplo. Para que lo
+/// eliminado siga eliminado mientras la app esté abierta, la app debe usar
+/// siempre la misma instancia (ver `canchasRepositoryProvider`).
 class CanchasRepositoryFake implements CanchasRepository {
-  const CanchasRepositoryFake({this.demora = const Duration(seconds: 1)});
+  CanchasRepositoryFake({this.demora = const Duration(seconds: 1)});
 
   final Duration demora;
+
+  final List<Cancha> _canchas = List<Cancha>.of(_canchasDeEjemplo);
 
   @override
   Future<List<Cancha>> obtenerCanchas({String? deporte}) async {
     await Future<void>.delayed(demora);
     return [
-      for (final cancha in _canchasDeEjemplo)
+      for (final cancha in _canchas)
         if (deporte == null || cancha.deporte == deporte) cancha,
     ];
   }
 
-  // TODO(#31): Nathaly implementa eliminar y restaurar sobre una lista en
-  // memoria. Mientras tanto fallan, y la pantalla devuelve la fila.
   @override
   Future<void> eliminar(String id) async {
     await Future<void>.delayed(demora);
-    throw UnimplementedError('eliminar pendiente (#31)');
+    final indice = _canchas.indexWhere((cancha) => cancha.id == id);
+    if (indice == -1) {
+      throw StateError('No existe una cancha con id $id');
+    }
+    _canchas.removeAt(indice);
   }
 
   @override
   Future<void> restaurar(Cancha cancha) async {
     await Future<void>.delayed(demora);
-    throw UnimplementedError('restaurar pendiente (#31)');
+    if (_canchas.any((existente) => existente.id == cancha.id)) {
+      return;
+    }
+
+    // Vuelve a su posición original: antes de la primera cancha que, en la
+    // lista de ejemplo, venía después de ella. Si no es una cancha de ejemplo,
+    // va al final.
+    final orden = _ordenOriginal(cancha.id);
+    var posicion = _canchas.length;
+    if (orden != -1) {
+      final siguiente = _canchas.indexWhere(
+        (existente) => _ordenOriginal(existente.id) > orden,
+      );
+      if (siguiente != -1) {
+        posicion = siguiente;
+      }
+    }
+    _canchas.insert(posicion, cancha);
   }
+
+  int _ordenOriginal(String id) =>
+      _canchasDeEjemplo.indexWhere((cancha) => cancha.id == id);
 }
 
 const List<Cancha> _canchasDeEjemplo = [
