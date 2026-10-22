@@ -17,6 +17,20 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-22 · @julianeduardo512-del — Laboratorio S15, Parte 1 (navegación real)
+
+- **Herramienta:** opencode (modelo big-pickle).
+- **Especificación:** "Implementar la navegación del laboratorio S15 en el repositorio del equipo: la pestaña activa vive en un provider (Notifier) y las pantallas en un IndexedStack (o go_router, que ya usamos); desde otra pantalla se navega cambiando el provider, como «Ver todo» en Inicio, sin pasar funciones por constructores; ningún botón de la barra queda sin hacer nada y lo que aún no exista muestra «Próximamente». Respetar `docs/ARQUITECTURA.md`, no usar Firebase fuera de `data/` y agregar pruebas de widget."
+- **Resultado:** `navegacionProvider` (`Notifier<Pestana>`), `ShellPrincipal` con `StatefulShellRoute.indexedStack`, `InicioScreen` con el resumen del mes, las últimas reservas y «Ver todo», Perfil con datos y salida a inicio de sesión, pantalla `ProximamenteScreen`, `MensajeConAccion` compartido en `core/widgets` y 9 pruebas nuevas (provider y shell).
+- **Aceptado:** `StatefulShellRoute.indexedStack` de go_router en lugar de un `IndexedStack` propio, porque el proyecto ya navega con go_router y así se conserva el estado y el scroll de cada pestaña sin duplicar pantallas. El provider es la única fuente de verdad: la barra lo escribe y el shell lo escucha para cambiar de rama. Se movió el `_MensajeConAccion` duplicado a `core/widgets`, como quedó propuesto en la bitácora de la S14.
+- **Rechazado / corregido:**
+  - La primera versión puso un `IndexedStack` dentro de una sola ruta y dejó `/canchas`, `/mis-reservas` y `/perfil` como rutas aparte: había dos instancias de la misma pantalla y el botón «Ver canchas» del estado vacío cambiaba de ruta en vez de pestaña. Se reemplazó por una rama por pestaña y ese botón ahora cambia el provider.
+  - Una prueba nueva falló porque el nombre de la cancha de la reserva de prueba coincidía con el de la lista de canchas. El diagnóstico (`Offstage` por rama en go_router) confirmó que el error era de los datos de la prueba, no de la app; se renombró la reserva de prueba.
+  - El botón «Entrar» de `LoginScreen` no hacía nada; se agregó para poder recorrer la app mientras la autenticación real llega en el Sprint 1.
+  - **No se modificó `docs/ARQUITECTURA.md`** (regla 6 de `AGENTS.md`) aunque su tabla de rutas ya no coincide (`/` ahora es Inicio y el listado quedó en `/canchas`). Se avisa al equipo para actualizarla en un PR de documentación.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 31 pruebas en verde; la prueba de scroll compara la posición antes y después de cambiar de pestaña.
+- **Commit / PR:** rama `feature/navegacion-s15`, PR hacia `develop` pendiente de revisión.
+
 ## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
 
 - **Herramienta:** Claude Code.
