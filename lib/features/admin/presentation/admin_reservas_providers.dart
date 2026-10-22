@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
+import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
 
 /// Qué reservas quiere ver el administrador. Inmutable: cambiar el filtro es
 /// crear uno nuevo.
@@ -53,8 +54,10 @@ class ReservasAdminController extends AsyncNotifier<List<Reserva>> {
 
   /// Elimina en el repositorio. Si falla, la excepción llega a la pantalla y
   /// la lista no cambia.
-  Future<void> eliminar(Reserva reserva) =>
-      ref.read(reservasRepositoryProvider).eliminar(reserva.id);
+  Future<void> eliminar(Reserva reserva) async {
+    await ref.read(reservasRepositoryProvider).eliminar(reserva.id);
+    _actualizarMisReservas();
+  }
 
   /// Quita la reserva de la lista sin volver a consultar. Se llama cuando el
   /// `Dismissible` terminó de deslizarse: la fila debe salir del árbol.
@@ -71,6 +74,14 @@ class ReservasAdminController extends AsyncNotifier<List<Reserva>> {
   /// filtro actual.
   Future<void> restaurar(Reserva reserva) async {
     await ref.read(reservasRepositoryProvider).restaurar(reserva);
-    if (ref.mounted) ref.invalidateSelf();
+    if (!ref.mounted) return;
+    ref.invalidateSelf();
+    _actualizarMisReservas();
+  }
+
+  /// La pestaña Mis reservas sigue viva en el `IndexedStack` de la barra:
+  /// sin esto mostraría la lista anterior al volver a ella.
+  void _actualizarMisReservas() {
+    if (ref.mounted) ref.invalidate(misReservasProvider);
   }
 }

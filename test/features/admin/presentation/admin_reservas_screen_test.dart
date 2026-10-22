@@ -5,6 +5,7 @@ import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
+import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
 
 /// Repositorio en memoria que registra las consultas y se puede hacer fallar.
 class _ReservasEnMemoria extends Fake implements ReservasRepository {
@@ -15,6 +16,13 @@ class _ReservasEnMemoria extends Fake implements ReservasRepository {
   bool fallarConsulta = false;
   bool fallarEliminar = false;
   bool fallarRestaurar = false;
+  int consultasMisReservas = 0;
+
+  @override
+  Future<List<Reserva>> obtenerMisReservas() async {
+    consultasMisReservas++;
+    return [...reservas];
+  }
 
   @override
   Future<List<Reserva>> obtenerReservas({EstadoReserva? estado}) async {
@@ -254,6 +262,31 @@ void main() {
       repositorio.reservas.map((r) => r.id),
       containsAll([_padel.id, _polideportivo.id]),
     );
+
+    await _cerrarSnackBar(tester);
+  });
+
+  testWidgets('eliminar y restaurar actualizan la pestaña Mis reservas', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([_sintetica, _padel]);
+    await _mostrarPantalla(tester, repositorio);
+
+    // Mis reservas está viva en otra pestaña del IndexedStack.
+    final contenedor = ProviderScope.containerOf(
+      tester.element(find.byType(AdminReservasScreen)),
+    );
+    final suscripcion = contenedor.listen(misReservasProvider, (_, _) {});
+    addTearDown(suscripcion.close);
+    await tester.pumpAndSettle();
+    expect(repositorio.consultasMisReservas, 1);
+
+    await _deslizar(tester, _sintetica.id);
+    expect(repositorio.consultasMisReservas, 2);
+
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+    expect(repositorio.consultasMisReservas, 3);
 
     await _cerrarSnackBar(tester);
   });
