@@ -27,7 +27,7 @@ class _CanchasRepo implements CanchasRepository {
 class _ReservasRepo implements ReservasRepository {
   _ReservasRepo(this.reservas);
 
-  final List<Reserva> reservas;
+  List<Reserva> reservas;
 
   @override
   Future<List<Reserva>> obtenerMisReservas({
@@ -38,18 +38,30 @@ class _ReservasRepo implements ReservasRepository {
   ];
 
   @override
-  Future<void> eliminarReserva(String id) async {}
+  Future<void> eliminarReserva(String id) async {
+    reservas = [
+      for (final reserva in reservas)
+        if (reserva.id != id) reserva,
+    ];
+  }
 
   @override
-  Future<void> restaurarReserva(Reserva reserva) async {}
+  Future<void> restaurarReserva(Reserva reserva) async {
+    reservas = [...reservas, reserva];
+  }
 }
 
 /// Arranca la app completa y entra a la barra principal.
-Future<ProviderContainer> _arrancarApp(WidgetTester tester) async {
+Future<ProviderContainer> _arrancarApp(
+  WidgetTester tester, {
+  List<Reserva>? reservas,
+}) async {
   final container = ProviderContainer(
     overrides: [
       canchasRepositoryProvider.overrideWithValue(_CanchasRepo(_canchas)),
-      reservasRepositoryProvider.overrideWithValue(_ReservasRepo([_reserva])),
+      reservasRepositoryProvider.overrideWithValue(
+        _ReservasRepo(reservas ?? [_reserva]),
+      ),
     ],
   );
   addTearDown(container.dispose);
@@ -175,6 +187,51 @@ void main() {
       find.text('Notificaciones estará disponible pronto.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('al borrar en Reservas se actualiza el resumen de Inicio', (
+    tester,
+  ) async {
+    // La fecha tiene que caer en el mes en curso para que Inicio la sume.
+    final ahora = DateTime.now();
+    final mes = '${ahora.year}-${ahora.month.toString().padLeft(2, '0')}';
+    final delMes = Reserva(
+      id: 'cancha-1_${mes.replaceAll('-', '')}10_18',
+      canchaId: 'cancha-1',
+      canchaNombre: 'Reserva del mes',
+      usuarioId: 'usuario-demo',
+      fecha: '$mes-10',
+      hora: 18,
+      estado: EstadoReserva.confirmada,
+      total: 150,
+    );
+
+    await _arrancarApp(tester, reservas: [delMes]);
+
+    final resumen = find.widgetWithText(ListTile, 'Te quedan este mes');
+    expect(
+      find.descendant(of: resumen, matching: find.text('Q150.00')),
+      findsOneWidget,
+    );
+
+    await tester.tap(_destino('Reservas'));
+    await tester.pumpAndSettle();
+
+    // confirmDismiss espera al repositorio sin programar cuadros: se avanza
+    // el reloj a mano para que el borrado termine.
+    await tester.drag(find.text('Reserva del mes'), const Offset(-600, 0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    await tester.tap(_destino('Inicio'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(of: resumen, matching: find.text('Q0.00')),
+      findsOneWidget,
+    );
+    expect(find.text('Todavía no tienes reservas.'), findsOneWidget);
   });
 }
 
