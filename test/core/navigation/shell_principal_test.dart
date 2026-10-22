@@ -9,6 +9,7 @@ import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_screen.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
+import 'package:reservacancha/features/reservas/domain/filtro_reservas.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
 
@@ -29,7 +30,18 @@ class _ReservasRepo implements ReservasRepository {
   final List<Reserva> reservas;
 
   @override
-  Future<List<Reserva>> obtenerMisReservas() async => reservas;
+  Future<List<Reserva>> obtenerMisReservas({
+    FiltroReservas filtro = const FiltroReservas(),
+  }) async => [
+    for (final reserva in reservas)
+      if (filtro.incluye(reserva)) reserva,
+  ];
+
+  @override
+  Future<void> eliminarReserva(String id) async {}
+
+  @override
+  Future<void> restaurarReserva(Reserva reserva) async {}
 }
 
 /// Arranca la app completa y entra a la barra principal.

@@ -35,4 +35,20 @@ void main() {
       expect(formatearHora(7), '07:00');
     });
   });
+
+  group('formatearMes', () {
+    test('convierte yyyy-MM en el nombre del mes y el año', () {
+      expect(formatearMes('2026-10'), 'Octubre 2026');
+    });
+
+    test('usa el nombre en español de cada mes', () {
+      expect(formatearMes('2026-01'), 'Enero 2026');
+      expect(formatearMes('2026-12'), 'Diciembre 2026');
+    });
+
+    test('devuelve el valor tal cual si no tiene el formato esperado', () {
+      expect(formatearMes('2026'), '2026');
+      expect(formatearMes('2026-13'), '2026-13');
+    });
+  });
 }
