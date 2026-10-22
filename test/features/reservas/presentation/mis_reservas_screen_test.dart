@@ -8,7 +8,8 @@ import 'package:reservacancha/features/reservas/domain/reservas_repository.dart'
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_screen.dart';
 
 /// Repositorio falso que se puede hacer fallar, vaciar o volver lento.
-class _ReservasRepositoryControlable implements ReservasRepository {
+class _ReservasRepositoryControlable extends Fake
+    implements ReservasRepository {
   bool fallar = false;
   List<Reserva> reservas = const [_reserva];
   Duration demora = Duration.zero;
