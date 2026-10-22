@@ -17,6 +17,21 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ---
 
+## 2026-10-22 · @julianeduardo512-del — Laboratorio S15, Parte 2 (filtro y Deshacer)
+
+- **Herramienta:** opencode (modelo big-pickle).
+- **Especificación:** "Completar el laboratorio S15 en una rama apilada sobre `feature/navegacion-s15`: el filtro del listado es un objeto inmutable dentro de un `Notifier` y la lista se arma en un provider que lo escucha con `ref.watch`; borrar deslizando con `Dismissible` cuya key es el id, borrando primero en la base y devolviendo la fila si falla; el SnackBar ofrece «Deshacer» y restaura el registro idéntico. Mantener los cuatro estados del listado, mensajes en español y al menos una prueba por lógica nueva."
+- **Resultado:** `FiltroReservas` y `EstadoFiltroReserva` en `domain/` con la regla `incluye`; `FiltroReservasNotifier` y `MisReservasController` (`AsyncNotifier`) con `eliminar`, `quitar` y `restaurar`; chips de estado y de mes en la pantalla; `Dismissible` con fondo de borrado, SnackBar flotante con «Deshacer» y aviso si el borrado falla; persistencia del repositorio falso en un JSON temporal para que el borrado sobreviva a cerrar la app; `formatearMes` en `core/utils` y 18 pruebas nuevas (49 en total).
+- **Aceptado:** la regla del filtro vive en el dominio (`incluye`), así `data/` y `presentation/` la comparten y el día que llegue Firestore solo se traduce a una consulta. `MisReservasController` como `AsyncNotifier` para quitar y restaurar en la lista visible sin volver a pedirla al repositorio. El borrado en la base ocurre en `confirmDismiss`: si falla devuelve `false`, la fila vuelve y el registro queda intacto. La persistencia del fake en `Directory.systemTemp` se eligió porque Firestore aún no está configurado y permite comprobar el requisito de cerrar y abrir la app con una prueba de repositorio.
+- **Rechazado / corregido:**
+  - La primera versión quitaba la reserva del estado dentro de `confirmDismiss`; la fila desaparecía de golpe, sin animación de salida, y `onDismissed` ya no corría. Se separó en dos pasos: `eliminar` (base) en `confirmDismiss` y `quitar` (lista visible) en `onDismissed`.
+  - Las pruebas de deslizar fallaban porque `confirmDismiss` espera al repositorio sin programar cuadros y `pumpAndSettle` se detenía antes de que respondiera. Se agregó un paso explícito de reloj en las pruebas, documentado en el helper `_deslizarParaBorrar`.
+  - `valueOrNull` de Riverpod 2 no existe en Riverpod 3: se usa `AsyncValue.value`.
+  - El filtro por texto libre se dejó fuera: suma un `TextField` que el diseño aún no define y el issue solo pide al menos un filtro. Se usan estado y mes, que además se combinan.
+  - Al restaurar con otro filtro activo la reserva no debe reaparecer: `restaurar` comprueba `filtro.incluye` antes de insertarla y el listado sigue siendo coherente.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 49 pruebas en verde; la prueba de persistencia borra con una instancia del repositorio, crea otra sobre el mismo archivo (simula reabrir la app) y comprueba que la reserva sigue borrada y que «Deshacer» la restaura con todos sus campos.
+- **Commit / PR:** rama `feature/filtro-deshacer-s15` (apilada sobre `feature/navegacion-s15`), PR hacia `develop` pendiente de revisión.
+
 ## 2026-10-22 · @julianeduardo512-del — Laboratorio S15, Parte 1 (navegación real)
 
 - **Herramienta:** opencode (modelo big-pickle).
