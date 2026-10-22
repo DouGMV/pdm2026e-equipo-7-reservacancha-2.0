@@ -16,7 +16,7 @@ import 'package:reservacancha/features/reservas/domain/reservas_repository.dart'
 
 class _CanchasFalsas extends Fake implements CanchasRepository {
   @override
-  Future<List<Cancha>> obtenerCanchas() async => [
+  Future<List<Cancha>> obtenerCanchas({String? deporte}) async => [
     for (var i = 1; i <= 20; i++)
       Cancha(
         id: 'cancha-$i',
