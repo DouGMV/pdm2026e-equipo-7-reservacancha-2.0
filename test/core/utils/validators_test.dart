@@ -84,6 +84,16 @@ void main() {
       );
     });
 
+    test('rechaza signos y prefijos aunque tengan 8 caracteres', () {
+      for (final telefono in ['-5551234', '+5551234', '0x123456']) {
+        expect(
+          validarTelefono(telefono),
+          'Introduce un teléfono válido (8 dígitos)',
+          reason: telefono,
+        );
+      }
+    });
+
     test('acepta exactamente 8 dígitos', () {
       expect(validarTelefono('55551234'), isNull);
     });

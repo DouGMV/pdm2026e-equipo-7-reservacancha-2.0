@@ -27,10 +27,15 @@ String? validarContrasena(String? valor) {
           : null);
 }
 
+/// Exactamente 8 dígitos, sin signos ni prefijos (`int.tryParse` aceptaría
+/// `-5551234` o `0x123456`).
+final _ochoDigitos = RegExp(r'^\d{8}$');
+
 /// Teléfono obligatorio: exactamente 8 dígitos.
 String? validarTelefono(String? valor) {
   final texto = valor?.trim() ?? '';
   if (texto.isEmpty) return 'Introduce tu teléfono';
-  final esOchoDigitos = texto.length == 8 && int.tryParse(texto) != null;
-  return esOchoDigitos ? null : 'Introduce un teléfono válido (8 dígitos)';
+  return _ochoDigitos.hasMatch(texto)
+      ? null
+      : 'Introduce un teléfono válido (8 dígitos)';
 }
