@@ -15,7 +15,93 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-22 · @NathalyR15 — Laboratorio S15 (repositorio de canchas en memoria: eliminar y restaurar)
+
+- **Herramienta:** Claude (chat, paso a paso; no tengo Claude Code).
+- **Especificación:** el prompt del equipo para Claude Code (parte de datos y lógica del issue #31), adaptado a una conversación en chat. Después de la actualización del equipo, mi parte quedó en implementar `eliminar` y `restaurar` en `canchas_repository_fake.dart` (donde estaba el `TODO(#31)`) y las pruebas unitarias del repositorio. Se trabajó sobre la rama `feat/31-filtro`, sin crear otra. No se tocó la pantalla, el router ni `adminCanchasProvider`.
+- **Resultado:** `CanchasRepositoryFake` con una lista en memoria copiada de las 5 canchas de ejemplo; `eliminar` por id y `restaurar` en su posición original; `canchasRepositoryProvider` con una sola instancia; y 12 pruebas unitarias nuevas.
+- **Aceptado:**
+  - Lista en memoria con `Future.delayed`, tal como pedía el issue.
+  - `restaurar` calcula la posición con el orden de la lista de ejemplo y no duplica si el id ya existe.
+  - `eliminar` con un id inexistente lanza `StateError`, y las pruebas comprueban que la lista no cambia.
+  - No hizo falta cambiar `canchas_screen_test.dart`: lo leí y ya trae `eliminar` y `restaurar` en su repositorio de prueba.
+- **Rechazado / corregido:**
+  - El primer plan de la IA creaba la rama `feat/31-filtro`, pero ya existía en GitHub. Hice `git fetch --prune` y `git switch` a la existente.
+  - Al quitar `const` del constructor (ahora el repositorio tiene estado), el provider dejó de compilar: `The constructor being called isn't a const constructor`. Lo detecté en VS Code y quité el `const` del provider.
+  - El comando `code ...` que me dio la IA para crear el archivo de pruebas solo abría una pestaña vacía y no lo creaba. Lo creé con `New-Item`.
+  - Borré `test/features/canchas/data/.gitkeep`, porque la carpeta ya tiene un archivo real.
+  - Me quedé con `StateError` para el id inexistente, sin definir una excepción propia, porque el contrato no la pide y no agregamos clases de más.
+  - `dart format .` reformateó dos archivos, y los dejé así antes del commit.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y `flutter test` con las 38 pruebas en verde. Corrí aparte las pruebas del repositorio (12 en verde) para confirmar que mi archivo se ejecutaba.
+- **Commit / PR:** `eb80291`, issue #31.
 ---
+
+## 2026-10-22 · @DouGMV — Laboratorio S15, navegación con barra inferior
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Implementar el requisito 1 y 2 del laboratorio S15 (issue #30) adaptado a nuestro proyecto, que ya usa go_router: pestaña activa en un `Notifier`, pantallas en un `IndexedStack`, 'Próximamente' para lo que no existe y navegación desde otra pantalla cambiando el provider. Seguir el ejemplo de inkash (`s15-01-navegacion`)."
+- **Resultado:** `navegacionProvider` (`Pestana`), `InicioShell` con `NavigationBar` e `IndexedStack` en la ruta `/`, pestaña Admin con accesos a Gestión de canchas y Reservas, `Proximamente` para Perfil, y 4 pruebas de widget.
+- **Aceptado:** el `IndexedStack` dentro de la ruta `/` de go_router: cumple la rúbrica (pestaña en un provider) sin perder go_router para login, detalle y admin.
+- **Rechazado / corregido:**
+  - Se evaluó usar `StatefulShellRoute.indexedStack` de go_router; se descartó porque la pestaña no viviría en un provider, que es lo que pide la rúbrica.
+  - `/mis-reservas` y `/perfil` dejaron de ser rutas sueltas: navegar a ellas mostraba la pantalla sin la barra. Ahora son pestañas.
+  - "Ver canchas" en Mis reservas usaba `context.go`; se cambió por `navegacionProvider.notifier.ir(Pestana.canchas)`.
+  - La prueba de scroll se verificó reemplazando temporalmente el `IndexedStack` por un cambio simple de pantalla: la prueba falla, así que sí protege el comportamiento.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 26 pruebas en verde.
+- **Commit / PR:** issue #30.
+## 2026-10-22 · @Lilfacce — Laboratorio S15 (gestión de canchas: filtro y eliminar con Deshacer)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del issue #31 en `feat/31-filtro`: `AdminCanchasScreen` con chips de deporte reutilizables, los estados de la S14, `Dismissible` con `key` = id que borra primero en el repositorio, SnackBar con Deshacer y las pruebas de widget. La capa de datos la hace Nathaly; usar los nombres acordados con ella."
+- **Resultado:** la pantalla, `FiltroDeporteChips`, `MensajeConAccion` en `core/widgets`, `FiltroCanchas`, `filtroCanchasProvider`, `adminCanchasProvider` y 4 pruebas de widget.
+- **Aceptado:** el filtro inmutable con `==`; los chips y el catálogo de deportes reutilizables para el #18; mover `MensajeConAccion` a `core/widgets` (se usa en dos pantallas).
+- **Rechazado / corregido:**
+  - El prompt que se le dio a Nathaly pedía `adminCanchasProvider` como `FutureProvider`. Con eso, al terminar de deslizar, la fila seguía en la lista hasta volver a consultar, y Flutter lanza "A dismissed Dismissible widget is still part of the tree". Se cambió a un `AsyncNotifier` con `eliminar` (borra en el repositorio dentro de `confirmDismiss`) y `quitarDeLaLista` (la quita de inmediato en `onDismissed`).
+  - En nuestra versión de Flutter, un `SnackBar` con acción no se cierra solo (`persist` vale `true` si hay acción), así que el mensaje de Deshacer se quedaba para siempre. Se usó `persist: false`.
+  - El repositorio en memoria (`eliminar` y `restaurar`) se dejó como pendiente para Nathaly, en lugar de que la IA hiciera también su parte.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 26 pruebas en verde en local.
+- **Commit / PR:** issue #31.
+## 2026-10-22 · @DouGMV — Laboratorio S15, reservas (admin) con filtro y eliminar con Deshacer
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Resolver el issue #32 (pareja Julian–Douglas; Angel no disponible): en `AdminReservasScreen`, filtro inmutable por estado en un `Notifier`, lista que hace `ref.watch` del filtro, estados de la S14, `Dismissible` con key = id que borra primero en el repositorio y SnackBar con Deshacer que restaura la reserva idéntica. Seguir el patrón de inkash (`s15-03-historial`, `s15-04-eliminar`) y comprobar que las pruebas detectan errores reales."
+- **Resultado:** `ReservasRepository` con `obtenerReservas`, `eliminar` y `restaurar`; repositorio simulado sobre una lista en memoria; `FiltroReservas`, `filtroReservasProvider` y `reservasAdminProvider` (`AsyncNotifier`); la pantalla; `MensajeConAccion` en `core/widgets`; 5 pruebas de widget.
+- **Aceptado:** el `AsyncNotifier` con `build` que observa el filtro y los métodos `eliminar` (quita la fila del estado solo si el repositorio respondió bien) y `restaurar` (vuelve a consultar con el filtro actual).
+- **Rechazado / corregido:**
+  - El borrado se eligió en las pantallas de **admin** y no en las del cliente: según `docs/ARQUITECTURA.md` y `firestore.rules`, el cliente cancela, solo el admin elimina.
+  - `MensajeConAccion` ya estaba copiado en dos pantallas; en lugar de una tercera copia se creó en `core/widgets` (las otras dos se pueden migrar después).
+  - El repositorio falso de la prueba de Mis reservas se cambió a `extends Fake implements ReservasRepository` para que no deje de compilar cada vez que crece el contrato.
+  - Se verificó la prueba del filtro cambiando temporalmente `ref.watch` por `ref.read`: las dos pruebas del filtro fallan, así que sí comprueban que la lista depende del filtro.
+  - **Detectado en la revisión de Marco, no por la IA:** en Flutter 3.47 un `SnackBar` con acción usa `persist: true` por defecto, así que el mensaje de Deshacer no se cerraba y el de un segundo borrado quedaba en cola. Se corrigió con `persist: false` y `hideCurrentSnackBar()`, y se agregaron pruebas que comprueban que el mensaje se cierra y que dos borrados seguidos muestran el segundo Deshacer (la prueba falla si se quita `persist: false`). Por sugerencia de la misma revisión, `restaurar` avisa si falla y la fila se quita en `onDismissed` para que se vea la animación.
+  - Al revisar el #37 integrando #33 + #34 + #37 se comprobó que, con la barra del #33, la pestaña Mis reservas seguía mostrando la reserva eliminada (el `IndexedStack` la mantiene viva con su lista en caché). Se corrigió invalidando `misReservasProvider` al eliminar y restaurar, con una prueba que falla si se quita.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 31 pruebas en verde. Limitación: con la lista en memoria, lo eliminado no sobrevive a cerrar la app (validación 6 del laboratorio); llegará con Firestore.
+- **Commit / PR:** issue #32.
+
+## 2026-10-15 · @Lilfacce — Laboratorio S14, Parte B (estados del listado de canchas)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Resolver el issue #24 en la rama `feat/24-estados-canchas` desde `develop`: entidad, contrato, repositorio falso, `canchasProvider` sin reintento automático, `CanchasScreen` con los cuatro estados y la prueba error → Reintentar → datos, respetando `docs/ARQUITECTURA.md`."
+- **Resultado:** la entidad `Cancha`, `CanchasRepository`, `CanchasRepositoryFake` con 5 canchas, `canchasRepositoryProvider`, `canchasProvider`, la pantalla y 4 pruebas de widget.
+- **Aceptado:** la separación por capas, `retry: (_, _) => null` y un repositorio de prueba controlable (que puede fallar, quedar vacío o ser lento) inyectado con `overrideWithValue`.
+- **Rechazado / corregido:**
+  - Con `AsyncValue.when` por defecto, al tocar **Reintentar** el mensaje de error seguía visible hasta que llegaba la respuesta, y el botón parecía no hacer nada. Se usó `skipLoadingOnRefresh: false` y se agregó una prueba que comprueba que aparece el indicador de carga al reintentar.
+  - El `canchasRepositoryProvider` se dejó en su propio archivo de `data/`, separado del repositorio falso, para que al llegar Firestore solo cambie esa línea.
+  - Se dejaron fuera el filtro por deporte y la navegación al detalle, porque el issue los deja para el Sprint 1/2.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 14 pruebas en verde en local.
+- **Commit / PR:** issue #24.
+
+## 2026-10-15 · @DouGMV — Laboratorio S14, Parte B (estados de mis reservas)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Resolver el issue #25 en la rama `feat/25-estados-mis-reservas` (Julian no pudo participar), con el mismo patrón que el PR #26 para que el proyecto sea consistente: entidad `Reserva`, contrato, repositorio falso, `misReservasProvider` sin reintento automático, `MisReservasScreen` con los cuatro estados y pruebas de widget. Comprobar que las pruebas detectan errores reales."
+- **Resultado:** `Reserva` con `EstadoReserva`, `ReservasRepository`, `ReservasRepositoryFake`, `reservasRepositoryProvider`, `misReservasProvider`, la pantalla, `formatearHora` en `core/utils` y 8 pruebas nuevas.
+- **Aceptado:** el patrón del #26; el estado como `enum` en el dominio (el modelo de `data/` hará la conversión desde el texto de Firestore); `formatearHora` en `core/utils` porque también la usará el detalle de cancha.
+- **Rechazado / corregido:**
+  - La primera versión de las pruebas **pasaba aunque se quitara `retry: (_, _) => null`** (se comprobó quitando la línea). Causa: `pumpAndSettle` adelanta el reloj mientras el indicador de carga anima, y en ese tiempo corren los 10 reintentos automáticos de Riverpod (11 llamadas al repositorio) hasta que se rinde y muestra el error. Se agregó una prueba que avanza solo 100 ms (menos que el primer reintento) y cuenta las llamadas: ahora falla si se quita la línea.
+  - "Ver canchas" se prueba con un `GoRouter` mínimo dentro de la prueba, en lugar de la app completa, que arranca en `/login`.
+  - `_MensajeConAccion` queda duplicado con el del #26; se propone moverlo a `core/widgets` cuando ambos estén integrados.
+- **Verificación:** `dart format`, `flutter analyze` sin observaciones y 18 pruebas en verde; prueba de mutación (quitar `retry`) detectada por la prueba nueva.
+- **Commit / PR:** issue #25.
 
 ## 2026-10-15 · @DouGMV — Laboratorio S14, Parte A (CI, CODEOWNERS y bitácora)
 

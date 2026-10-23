@@ -1,25 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/presentation/admin_canchas_screen.dart';
-import '../../features/admin/presentation/admin_reservas_screen.dart';
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/auth/presentation/registro_screen.dart';
-import '../../features/canchas/presentation/canchas_screen.dart';
-import '../../features/canchas/presentation/detalle_cancha_screen.dart';
-import '../../features/perfil/presentation/perfil_screen.dart';
-import '../../features/reservas/presentation/confirmar_reserva_screen.dart';
-import '../../features/reservas/presentation/mis_reservas_screen.dart';
+import 'package:reservacancha/core/router/inicio_shell.dart';
+import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
+import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
+import 'package:reservacancha/features/auth/presentation/login_screen.dart';
+import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
+import 'package:reservacancha/features/canchas/presentation/detalle_cancha_screen.dart';
+import 'package:reservacancha/features/reservas/presentation/confirmar_reserva_screen.dart';
 
 /// Rutas de la app (ver docs/ARQUITECTURA.md).
 abstract final class AppRoutes {
   static const login = '/login';
   static const registro = '/registro';
+
+  /// Pantalla principal con la barra inferior (Canchas, Mis reservas, Admin y
+  /// Perfil son pestañas, ver `navegacion_provider.dart`).
   static const canchas = '/';
   static const detalleCancha = '/cancha/:id';
   static const confirmarReserva = '/reserva/confirmar';
-  static const misReservas = '/mis-reservas';
-  static const perfil = '/perfil';
   static const adminCanchas = '/admin/canchas';
   static const adminReservas = '/admin/reservas';
 }
@@ -38,7 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.canchas,
-        builder: (context, state) => const CanchasScreen(),
+        builder: (context, state) => const InicioShell(),
       ),
       GoRoute(
         path: AppRoutes.detalleCancha,
@@ -48,14 +47,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.confirmarReserva,
         builder: (context, state) => const ConfirmarReservaScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.misReservas,
-        builder: (context, state) => const MisReservasScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.perfil,
-        builder: (context, state) => const PerfilScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminCanchas,

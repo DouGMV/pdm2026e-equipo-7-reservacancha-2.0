@@ -1,0 +1,107 @@
+import 'package:reservacancha/features/reservas/domain/reserva.dart';
+import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
+
+/// Usuario de ejemplo mientras no exista el inicio de sesión real.
+const usuarioDemo = 'usuario-demo';
+
+/// Repositorio sobre una lista en memoria mientras no exista la
+/// implementación con Firestore. Simula la demora de la red con
+/// [Future.delayed]. Lo eliminado se pierde al cerrar la app.
+class ReservasRepositoryFake implements ReservasRepository {
+  ReservasRepositoryFake({
+    this.demora = const Duration(seconds: 1),
+    List<Reserva> reservas = reservasDeEjemplo,
+  }) : _reservas = [...reservas];
+
+  final Duration demora;
+  final List<Reserva> _reservas;
+
+  @override
+  Future<List<Reserva>> obtenerMisReservas() async {
+    await Future<void>.delayed(demora);
+    return _ordenadas(_reservas.where((r) => r.usuarioId == usuarioDemo));
+  }
+
+  @override
+  Future<List<Reserva>> obtenerReservas({EstadoReserva? estado}) async {
+    await Future<void>.delayed(demora);
+    return _ordenadas(
+      _reservas.where((r) => estado == null || r.estado == estado),
+    );
+  }
+
+  @override
+  Future<void> eliminar(String id) async {
+    await Future<void>.delayed(demora);
+    _reservas.removeWhere((r) => r.id == id);
+  }
+
+  @override
+  Future<void> restaurar(Reserva reserva) async {
+    await Future<void>.delayed(demora);
+    _reservas
+      ..removeWhere((r) => r.id == reserva.id)
+      ..add(reserva);
+  }
+
+  /// Más recientes primero: el orden no depende de cuándo se restauró.
+  List<Reserva> _ordenadas(Iterable<Reserva> reservas) {
+    return reservas.toList()..sort((a, b) {
+      final porFecha = b.fecha.compareTo(a.fecha);
+      return porFecha != 0 ? porFecha : b.hora.compareTo(a.hora);
+    });
+  }
+}
+
+const List<Reserva> reservasDeEjemplo = [
+  Reserva(
+    id: 'cancha-1_20261020_18',
+    canchaId: 'cancha-1',
+    canchaNombre: 'Cancha Sintética 1',
+    usuarioId: usuarioDemo,
+    fecha: '2026-10-20',
+    hora: 18,
+    estado: EstadoReserva.confirmada,
+    total: 150,
+  ),
+  Reserva(
+    id: 'cancha-5_20261022_7',
+    canchaId: 'cancha-5',
+    canchaNombre: 'Pádel Club Mesoamericana',
+    usuarioId: usuarioDemo,
+    fecha: '2026-10-22',
+    hora: 7,
+    estado: EstadoReserva.confirmada,
+    total: 175,
+  ),
+  Reserva(
+    id: 'cancha-3_20261012_19',
+    canchaId: 'cancha-3',
+    canchaNombre: 'Polideportivo Los Altos',
+    usuarioId: usuarioDemo,
+    fecha: '2026-10-12',
+    hora: 19,
+    estado: EstadoReserva.cancelada,
+    total: 120,
+  ),
+  Reserva(
+    id: 'cancha-2_20261021_20',
+    canchaId: 'cancha-2',
+    canchaNombre: 'Cancha Sintética 2',
+    usuarioId: 'usuario-ana',
+    fecha: '2026-10-21',
+    hora: 20,
+    estado: EstadoReserva.confirmada,
+    total: 200,
+  ),
+  Reserva(
+    id: 'cancha-4_20261018_16',
+    canchaId: 'cancha-4',
+    canchaNombre: 'Arena Voleibol Xela',
+    usuarioId: 'usuario-luis',
+    fecha: '2026-10-18',
+    hora: 16,
+    estado: EstadoReserva.cancelada,
+    total: 100,
+  ),
+];
