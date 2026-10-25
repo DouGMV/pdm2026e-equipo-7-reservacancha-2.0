@@ -35,9 +35,7 @@ class _ReservasRepositoryControlable extends Fake
     if (fallar) {
       throw Exception('error');
     }
-    final index = reservas.indexWhere((r) => r.id == id);
-    if (index != -1) {
-      final r = reservas[index];
+    if (reservas.any((r) => r.id == id)) {
       reservas = [
         for (final e in reservas)
           if (e.id == id)
@@ -256,7 +254,7 @@ void main() {
     'cancelar reserva: confirma, llama repositorio y actualiza estado',
     (tester) async {
       repositorio.reservas = [
-        Reserva(
+        const Reserva(
           id: 'cancha-1_20991231_18',
           canchaId: 'cancha-1',
           canchaNombre: 'Cancha Sintética 1',
@@ -292,7 +290,7 @@ void main() {
     tester,
   ) async {
     repositorio.reservas = [
-      Reserva(
+      const Reserva(
         id: 'cancha-1_20991231_18',
         canchaId: 'cancha-1',
         canchaNombre: 'Cancha Sintética 1',
@@ -320,7 +318,7 @@ void main() {
     tester,
   ) async {
     repositorio.reservas = [
-      Reserva(
+      const Reserva(
         id: 'cancha-1_20991231_18',
         canchaId: 'cancha-1',
         canchaNombre: 'Cancha Sintética 1',

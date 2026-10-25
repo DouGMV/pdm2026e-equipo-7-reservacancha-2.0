@@ -8,7 +8,7 @@ void main() {
       final repo = ReservasRepositoryFake(
         demora: Duration.zero,
         reservas: [
-          Reserva(
+          const Reserva(
             id: 'cancha-1_20261025_18',
             canchaId: 'cancha-1',
             canchaNombre: 'Cancha 1',
@@ -40,7 +40,7 @@ void main() {
       final repo = ReservasRepositoryFake(
         demora: Duration.zero,
         reservas: [
-          Reserva(
+          const Reserva(
             id: 'cancha-3_20261012_19',
             canchaId: 'cancha-3',
             canchaNombre: 'Polideportivo',

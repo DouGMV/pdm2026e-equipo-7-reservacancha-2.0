@@ -47,34 +47,6 @@ class _ListaReservas extends ConsumerWidget {
 
   final List<Reserva> reservas;
 
-  bool _esFutura(String fecha) {
-    try {
-      final hoy = DateTime.now();
-      final fechaReserva = DateTime.parse(fecha);
-      final hoySinHora = DateTime(hoy.year, hoy.month, hoy.day);
-      final reservaSinHora = DateTime(
-        fechaReserva.year,
-        fechaReserva.month,
-        fechaReserva.day,
-      );
-      if (reservaSinHora.isAfter(hoySinHora)) {
-        return true;
-      }
-      if (reservaSinHora.isAtSameMomentAs(hoySinHora)) {
-        final horaActual = hoy.hour;
-        final reserva = reservas.firstWhere(
-          (r) => r.fecha == fecha,
-          orElse: () => reservas.first,
-        );
-        // Buscar la reserva específica en el contexto - simplificado
-        return true;
-      }
-      return false;
-    } catch (_) {
-      return true;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colores = Theme.of(context).colorScheme;
@@ -94,8 +66,7 @@ class _ListaReservas extends ConsumerWidget {
             fechaReservaSinHora.isAfter(hoy) ||
             (fechaReservaSinHora.isAtSameMomentAs(hoy) &&
                 reserva.hora > ahora.hour);
-        final puedeCancelar =
-            confirmada && (esFutura || reserva.fecha.startsWith('2099'));
+        final puedeCancelar = confirmada && esFutura;
 
         return ListTile(
           title: Text(reserva.canchaNombre),
