@@ -126,7 +126,10 @@ void main() {
 
     await _tocarPestana(tester, 'Perfil');
     expect(_titulo('Perfil'), findsOneWidget);
-    expect(find.text('Próximamente'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Cerrar sesión'),
+      findsOneWidget,
+    );
 
     await _tocarPestana(tester, 'Canchas');
     expect(_titulo('Canchas'), findsOneWidget);
