@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:reservacancha/core/router/inicio_shell.dart';
+import 'package:reservacancha/core/router/redireccion.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
+import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 import 'package:reservacancha/features/auth/presentation/login_screen.dart';
 import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
 import 'package:reservacancha/features/canchas/presentation/detalle_cancha_screen.dart';
@@ -24,8 +27,19 @@ abstract final class AppRoutes {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  // go_router no conoce Riverpod: este notificador le avisa que vuelva a
+  // evaluar `redirect` cada vez que cambia la sesión, sin recrear el router
+  // (recrearlo perdería el historial de navegación).
+  final cambiosDeSesion = ValueNotifier<int>(0);
+  ref.listen(sesionProvider, (_, _) => cambiosDeSesion.value++);
+
   final router = GoRouter(
     initialLocation: AppRoutes.login,
+    refreshListenable: cambiosDeSesion,
+    redirect: (context, state) => calcularRedireccion(
+      sesion: ref.read(sesionProvider),
+      ruta: state.matchedLocation,
+    ),
     routes: [
       GoRoute(
         path: AppRoutes.login,
@@ -58,6 +72,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
-  ref.onDispose(router.dispose);
+  ref.onDispose(() {
+    router.dispose();
+    cambiosDeSesion.dispose();
+  });
   return router;
 });

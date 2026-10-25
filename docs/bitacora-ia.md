@@ -173,3 +173,15 @@ qué especificaste, qué revisaste y qué rechazaste.
   - Los comandos de GitHub que propuso para PowerShell fallaron por el manejo de comillas; se reemplazaron por `gh project edit`.
   - El modo automático de la herramienta bloqueó los cambios de configuración del repositorio; Douglas los ejecutó manualmente.
 - **Verificación:** `flutter analyze` sin observaciones, 6 pruebas en verde y CI en verde en el PR #1.
+
+## 2026-10-24 · @AngelOvalle29 — Providers de sesión y redirección del router (#7)
+
+- **Herramienta:** Claude (claude.ai).
+- **Especificación:** "Con el issue #7, `docs/ARQUITECTURA.md` y el código actual de `develop`: contrato de `AuthRepository` en `domain/`, repositorio en memoria en `data/` (sin Firebase), `sesionProvider` y `AuthController` con Riverpod, `redirect` del router por sesión y rol, y pruebas. Sin paquetes nuevos y sin tocar `main.dart` para no chocar con el PR #41."
+- **Resultado:** `AuthRepository`, `Usuario`, `AuthException`, `AuthRepositoryFake`, `sesionProvider`, `AuthController`, `calcularRedireccion` (función pura) y `refreshListenable` en `appRouterProvider`; login y registro conectados al provider; pruebas unitarias y de widgets.
+- **Aceptado:** la separación por capas, que las pantallas no naveguen solas (decide el `redirect`) y la regla de redirección como función pura para probarla sin montar la app.
+- **Rechazado / corregido:**
+  - Al probar en el emulador encontré que un cliente que tocaba "Gestión de canchas" quedaba en una copia duplicada de `/` con una flecha que no funcionaba: el `push` se redirigía a `/`. La IA había propuesto dejar el filtro de la pestaña Admin para otro issue; se decidió incluirlo aquí y ocultar la pestaña a los clientes en `InicioShell`.
+  - La prueba de registro usaba `ana@correo.com`, que ahora existe en el repositorio en memoria; se cambió a `luis@correo.com` y se agregó una prueba para el correo repetido.
+  - En `app_router_test.dart` el helper de navegación usaba `GoRouter.of` desde un widget arriba de `MaterialApp.router` y fallaba con *No GoRouter found in context*; se cambió a leer `appRouterProvider` del contenedor de Riverpod.
+- **Verificación:** `dart format .` sin cambios, `flutter analyze` sin observaciones y 98 pruebas en verde; probado a mano en el emulador (API 36) con las cuentas cliente y admin.
