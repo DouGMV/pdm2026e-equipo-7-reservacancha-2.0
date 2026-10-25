@@ -6,11 +6,14 @@ import 'package:reservacancha/core/router/inicio_shell.dart';
 import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/router/redireccion.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
+import 'package:reservacancha/features/admin/presentation/admin_reservas_providers.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
 import 'package:reservacancha/features/admin/presentation/cancha_form_screen.dart';
 import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 import 'package:reservacancha/features/auth/presentation/login_screen.dart';
 import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
+import 'package:reservacancha/features/canchas/presentation/admin_canchas_providers.dart';
+import 'package:reservacancha/features/canchas/presentation/canchas_providers.dart';
 import 'package:reservacancha/features/canchas/presentation/detalle_cancha_screen.dart';
 import 'package:reservacancha/features/reservas/domain/solicitud_reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/confirmar_reserva_screen.dart';
@@ -40,10 +43,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final cambiosDeSesion = ValueNotifier<int>(0);
   ref.listen(sesionProvider, (anterior, siguiente) {
     cambiosDeSesion.value++;
-    // Cada usuario empieza en Canchas: sin esto, quien inicie sesión después
-    // de un "Cerrar sesión" entraría directo a la pestaña Perfil.
+    // Cada usuario empieza en Canchas y sin los filtros del anterior: sin
+    // esto, quien inicie sesión después de un "Cerrar sesión" entraría directo
+    // a la pestaña Perfil y con lo que el otro dejó filtrado.
     if (anterior?.value?.uid != siguiente.value?.uid) {
       ref.read(navegacionProvider.notifier).ir(Pestana.canchas);
+      ref
+        ..invalidate(filtroListadoProvider)
+        ..invalidate(filtroCanchasProvider)
+        ..invalidate(filtroReservasProvider);
     }
   });
 
