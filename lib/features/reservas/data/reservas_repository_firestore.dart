@@ -33,6 +33,12 @@ class ReservasRepositoryFirestore implements ReservasRepository {
     return _leer(consulta);
   }
 
+  /// Solo cambia `estado`: `firestore.rules` no deja que el dueño toque
+  /// ningún otro campo al cancelar.
+  @override
+  Future<void> cancelar(String id) =>
+      _reservas.doc(id).update({'estado': EstadoReserva.cancelada.name});
+
   @override
   Future<void> eliminar(String id) => _reservas.doc(id).delete();
 

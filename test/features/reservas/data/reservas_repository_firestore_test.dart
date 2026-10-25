@@ -84,4 +84,14 @@ void main() {
     expect(datos['estado'], 'confirmada');
     expect(datos['creadoEn'], isNotNull);
   });
+
+  test('cancelar solo cambia el estado', () async {
+    await repositorio.cancelar('c1_20261025_20');
+
+    final datos =
+        (await firestore.collection('reservas').doc('c1_20261025_20').get())
+            .data()!;
+    expect(datos['estado'], 'cancelada');
+    expect(datos['hora'], 20);
+  });
 }
