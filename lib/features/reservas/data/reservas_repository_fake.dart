@@ -31,6 +31,29 @@ class ReservasRepositoryFake implements ReservasRepository {
   }
 
   @override
+  Future<void> cancelar(String id) async {
+    await Future<void>.delayed(demora);
+    final index = _reservas.indexWhere((r) => r.id == id);
+    if (index == -1) {
+      throw Exception('No se encontró la reserva');
+    }
+    final reserva = _reservas[index];
+    if (reserva.estado != EstadoReserva.confirmada) {
+      throw Exception('Solo se pueden cancelar reservas confirmadas');
+    }
+    _reservas[index] = Reserva(
+      id: reserva.id,
+      canchaId: reserva.canchaId,
+      canchaNombre: reserva.canchaNombre,
+      usuarioId: reserva.usuarioId,
+      fecha: reserva.fecha,
+      hora: reserva.hora,
+      estado: EstadoReserva.cancelada,
+      total: reserva.total,
+    );
+  }
+
+  @override
   Future<void> eliminar(String id) async {
     await Future<void>.delayed(demora);
     _reservas.removeWhere((r) => r.id == id);

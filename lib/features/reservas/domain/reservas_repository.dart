@@ -9,6 +9,9 @@ abstract interface class ReservasRepository {
   /// que tienen ese estado.
   Future<List<Reserva>> obtenerReservas({EstadoReserva? estado});
 
+  /// Cancela una reserva confirmada. Solo el dueño puede hacerlo.
+  Future<void> cancelar(String id);
+
   /// Elimina la reserva. Solo el administrador puede hacerlo
   /// (ver `firestore.rules`).
   Future<void> eliminar(String id);
