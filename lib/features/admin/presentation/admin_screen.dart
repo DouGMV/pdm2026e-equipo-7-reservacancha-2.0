@@ -17,7 +17,7 @@ class AdminScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.stadium_outlined),
             title: const Text('Gestión de canchas'),
-            subtitle: const Text('Filtrar y eliminar canchas'),
+            subtitle: const Text('Agregar, editar, desactivar y eliminar'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(AppRoutes.adminCanchas),
           ),

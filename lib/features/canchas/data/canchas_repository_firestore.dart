@@ -35,6 +35,20 @@ class CanchasRepositoryFirestore implements CanchasRepository {
   }
 
   @override
+  Future<String> crear(Cancha cancha) async {
+    final doc = await _canchas.add(CanchaModel.toMap(cancha));
+    return doc.id;
+  }
+
+  @override
+  Future<void> actualizar(Cancha cancha) =>
+      _canchas.doc(cancha.id).update(CanchaModel.toMap(cancha));
+
+  @override
+  Future<void> cambiarActiva(String id, {required bool activa}) =>
+      _canchas.doc(id).update({'activa': activa});
+
+  @override
   Future<void> eliminar(String id) => _canchas.doc(id).delete();
 
   @override

@@ -7,6 +7,7 @@ import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/router/redireccion.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
+import 'package:reservacancha/features/admin/presentation/cancha_form_screen.dart';
 import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 import 'package:reservacancha/features/auth/presentation/login_screen.dart';
 import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
@@ -26,6 +27,9 @@ abstract final class AppRoutes {
   static String detalleDe(String canchaId) => '/cancha/$canchaId';
   static const confirmarReserva = '/reserva/confirmar';
   static const adminCanchas = '/admin/canchas';
+  static const nuevaCancha = '/admin/canchas/nueva';
+  static const editarCancha = '/admin/canchas/:id/editar';
+  static String editarDe(String canchaId) => '/admin/canchas/$canchaId/editar';
   static const adminReservas = '/admin/reservas';
 }
 
@@ -80,6 +84,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.adminCanchas,
         builder: (context, state) => const AdminCanchasScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.nuevaCancha,
+        builder: (context, state) => const CanchaFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editarCancha,
+        builder: (context, state) =>
+            CanchaFormScreen(canchaId: state.pathParameters['id']),
       ),
       GoRoute(
         path: AppRoutes.adminReservas,

@@ -70,4 +70,24 @@ void main() {
     expect((await repositorio.obtenerCancha('c3'))?.nombre, 'Beta');
     expect(await repositorio.obtenerCancha('no-existe'), isNull);
   });
+
+  test('crear asigna un id nuevo y guarda los datos', () async {
+    final base = (await repositorio.obtenerCancha('c1'))!;
+
+    final id = await repositorio.crear(base.copyWith(id: 'ignorado'));
+
+    expect(id, isNot('ignorado'));
+    expect((await repositorio.obtenerCancha(id))?.nombre, 'Alfa');
+    expect(await repositorio.obtenerCanchas(), hasLength(4));
+  });
+
+  test('actualizar y cambiarActiva modifican la cancha', () async {
+    final cancha = (await repositorio.obtenerCancha('c1'))!;
+
+    await repositorio.actualizar(cancha.copyWith(activa: false));
+    expect((await repositorio.obtenerCancha('c1'))!.activa, isFalse);
+
+    await repositorio.cambiarActiva('c1', activa: true);
+    expect((await repositorio.obtenerCancha('c1'))!.activa, isTrue);
+  });
 }
