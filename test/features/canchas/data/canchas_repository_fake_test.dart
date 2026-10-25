@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:reservacancha/features/canchas/data/canchas_repository_fake.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
+
+import '../../../helpers/repositorios_en_memoria.dart';
 
 void main() {
   late CanchasRepositoryFake repositorio;
@@ -129,7 +132,7 @@ void main() {
   });
 
   test('canchasRepositoryProvider devuelve siempre la misma instancia', () {
-    final container = ProviderContainer();
+    final container = ProviderContainer(overrides: repositoriosEnMemoria());
     addTearDown(container.dispose);
 
     final primera = container.read(canchasRepositoryProvider);
