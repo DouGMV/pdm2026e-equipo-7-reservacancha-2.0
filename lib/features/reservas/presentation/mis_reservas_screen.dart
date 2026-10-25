@@ -90,9 +90,12 @@ class _ListaReservas extends ConsumerWidget {
         final fechaReservaSinHora = fechaReserva == null
             ? hoy.add(const Duration(days: 1))
             : DateTime(fechaReserva.year, fechaReserva.month, fechaReserva.day);
-        final esFutura = fechaReservaSinHora.isAfter(hoy) ||
-            (fechaReservaSinHora.isAtSameMomentAs(hoy) && reserva.hora > ahora.hour);
-        final puedeCancelar = confirmada && (esFutura || reserva.fecha.startsWith('2099'));
+        final esFutura =
+            fechaReservaSinHora.isAfter(hoy) ||
+            (fechaReservaSinHora.isAtSameMomentAs(hoy) &&
+                reserva.hora > ahora.hour);
+        final puedeCancelar =
+            confirmada && (esFutura || reserva.fecha.startsWith('2099'));
 
         return ListTile(
           title: Text(reserva.canchaNombre),
