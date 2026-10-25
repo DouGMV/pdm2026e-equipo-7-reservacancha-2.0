@@ -14,6 +14,8 @@ class _ReservasRepositoryControlable extends Fake
   List<Reserva> reservas = const [_reserva];
   Duration demora = Duration.zero;
   int llamadas = 0;
+  int cancelarLlamadas = 0;
+  String? ultimoIdCancelado;
 
   @override
   Future<List<Reserva>> obtenerMisReservas() async {
@@ -23,6 +25,66 @@ class _ReservasRepositoryControlable extends Fake
       throw Exception('sin conexión');
     }
     return reservas;
+  }
+
+  @override
+  Future<void> cancelar(String id) async {
+    cancelarLlamadas++;
+    ultimoIdCancelado = id;
+    await Future<void>.delayed(demora);
+    if (fallar) {
+      throw Exception('error');
+    }
+    final index = reservas.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      final r = reservas[index];
+      reservas = [
+        for (final e in reservas)
+          if (e.id == id)
+            Reserva(
+              id: e.id,
+              canchaId: e.canchaId,
+              canchaNombre: e.canchaNombre,
+              usuarioId: e.usuarioId,
+              fecha: e.fecha,
+              hora: e.hora,
+              estado: EstadoReserva.cancelada,
+              total: e.total,
+            )
+          else
+            e,
+      ];
+    }
+  }
+
+  @override
+  Future<List<Reserva>> obtenerReservas({EstadoReserva? estado}) async {
+    await Future<void>.delayed(demora);
+    if (fallar) {
+      throw Exception('sin conexión');
+    }
+    if (estado == null) {
+      return reservas;
+    }
+    return reservas.where((r) => r.estado == estado).toList();
+  }
+
+  @override
+  Future<void> eliminar(String id) async {
+    await Future<void>.delayed(demora);
+    if (fallar) {
+      throw Exception('error');
+    }
+    reservas = reservas.where((r) => r.id != id).toList();
+  }
+
+  @override
+  Future<void> restaurar(Reserva reserva) async {
+    await Future<void>.delayed(demora);
+    if (fallar) {
+      throw Exception('error');
+    }
+    reservas = [...reservas.where((r) => r.id != reserva.id), reserva];
   }
 }
 
@@ -166,5 +228,122 @@ void main() {
 
     expect(find.text('Cancelada'), findsOneWidget);
     expect(find.text('Confirmada'), findsNothing);
+  });
+
+  testWidgets('muestra botón Cancelar para reservas confirmadas futuras', (
+    tester,
+  ) async {
+    repositorio.reservas = const [
+      Reserva(
+        id: 'cancha-1_20991231_18',
+        canchaId: 'cancha-1',
+        canchaNombre: 'Cancha Sintética 1',
+        usuarioId: 'usuario-demo',
+        fecha: '2099-12-31',
+        hora: 18,
+        estado: EstadoReserva.confirmada,
+        total: 150,
+      ),
+    ];
+
+    await _mostrarPantalla(tester, repositorio);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cancelar'), findsOneWidget);
+  });
+
+  testWidgets(
+    'cancelar reserva: confirma, llama repositorio y actualiza estado',
+    (tester) async {
+      repositorio.reservas = [
+        Reserva(
+          id: 'cancha-1_20991231_18',
+          canchaId: 'cancha-1',
+          canchaNombre: 'Cancha Sintética 1',
+          usuarioId: 'usuario-demo',
+          fecha: '2099-12-31',
+          hora: 18,
+          estado: EstadoReserva.confirmada,
+          total: 150,
+        ),
+      ];
+
+      await _mostrarPantalla(tester, repositorio);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('¿Seguro que deseas cancelar esta reserva?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Sí'));
+      await tester.pumpAndSettle();
+
+      expect(repositorio.cancelarLlamadas, 1);
+      expect(repositorio.ultimoIdCancelado, 'cancha-1_20991231_18');
+      expect(find.text('Cancelada'), findsOneWidget);
+      expect(find.text('Cancelar'), findsNothing);
+    },
+  );
+
+  testWidgets('cancelar reserva: cancelar diálogo no llama repositorio', (
+    tester,
+  ) async {
+    repositorio.reservas = [
+      Reserva(
+        id: 'cancha-1_20991231_18',
+        canchaId: 'cancha-1',
+        canchaNombre: 'Cancha Sintética 1',
+        usuarioId: 'usuario-demo',
+        fecha: '2099-12-31',
+        hora: 18,
+        estado: EstadoReserva.confirmada,
+        total: 150,
+      ),
+    ];
+
+    await _mostrarPantalla(tester, repositorio);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+
+    expect(repositorio.cancelarLlamadas, 0);
+    expect(find.text('Confirmada'), findsOneWidget);
+  });
+
+  testWidgets('cancelar reserva: error muestra mensaje en español', (
+    tester,
+  ) async {
+    repositorio.reservas = [
+      Reserva(
+        id: 'cancha-1_20991231_18',
+        canchaId: 'cancha-1',
+        canchaNombre: 'Cancha Sintética 1',
+        usuarioId: 'usuario-demo',
+        fecha: '2099-12-31',
+        hora: 18,
+        estado: EstadoReserva.confirmada,
+        total: 150,
+      ),
+    ];
+
+    await _mostrarPantalla(tester, repositorio);
+    await tester.pumpAndSettle();
+
+    repositorio.fallar = true;
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sí'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No pudimos cancelar la reserva. Inténtalo de nuevo.'),
+      findsOneWidget,
+    );
   });
 }
