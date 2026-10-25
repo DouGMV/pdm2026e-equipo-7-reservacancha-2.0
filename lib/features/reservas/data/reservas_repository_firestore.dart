@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:reservacancha/core/constants/firestore_collections.dart';
+import 'package:reservacancha/core/errors/reserva_no_disponible_exception.dart';
 import 'package:reservacancha/features/reservas/data/reserva_model.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
@@ -31,6 +32,41 @@ class ReservasRepositoryFirestore implements ReservasRepository {
       consulta = consulta.where('estado', isEqualTo: estado.name);
     }
     return _leer(consulta);
+  }
+
+  @override
+  Future<Set<int>> obtenerHorasOcupadas({
+    required String canchaId,
+    required String fecha,
+  }) async {
+    final resultado = await _reservas
+        .where('canchaId', isEqualTo: canchaId)
+        .where('fecha', isEqualTo: fecha)
+        .where('estado', isEqualTo: EstadoReserva.confirmada.name)
+        .get();
+    return {
+      for (final doc in resultado.docs)
+        ReservaModel.fromMap(doc.id, doc.data()).hora,
+    };
+  }
+
+  /// Transacción de la regla anti-duplicados (docs/ARQUITECTURA.md): si dos
+  /// personas reservan la misma hora a la vez, Firestore repite la
+  /// transacción de la segunda y esta encuentra el horario ya confirmado.
+  @override
+  Future<void> crearReserva(Reserva reserva) async {
+    final referencia = _reservas.doc(reserva.id);
+    await _firestore.runTransaction((transaccion) async {
+      final actual = await transaccion.get(referencia);
+      if (actual.data()?['estado'] == EstadoReserva.confirmada.name) {
+        throw const ReservaNoDisponibleException();
+      }
+      transaccion.set(referencia, {
+        ...ReservaModel.toMap(reserva),
+        'estado': EstadoReserva.confirmada.name,
+        'creadoEn': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   /// Solo cambia `estado`: `firestore.rules` no deja que el dueño toque

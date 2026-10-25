@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reservacancha/core/errors/reserva_no_disponible_exception.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_fake.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 
@@ -54,6 +55,40 @@ void main() {
       );
 
       expect(() => repo.cancelar('cancha-3_20261012_19'), throwsException);
+    });
+  });
+
+  group('ReservasRepositoryFake - crearReserva', () {
+    const reserva = Reserva(
+      id: 'cancha-1_20261030_18',
+      canchaId: 'cancha-1',
+      canchaNombre: 'Cancha 1',
+      usuarioId: 'ana',
+      fecha: '2026-10-30',
+      hora: 18,
+      estado: EstadoReserva.confirmada,
+      total: 150,
+    );
+
+    test('marca la hora como ocupada y rechaza el duplicado', () async {
+      final repo = ReservasRepositoryFake(
+        demora: Duration.zero,
+        reservas: const [],
+      );
+
+      await repo.crearReserva(reserva);
+
+      expect(
+        await repo.obtenerHorasOcupadas(
+          canchaId: 'cancha-1',
+          fecha: '2026-10-30',
+        ),
+        {18},
+      );
+      expect(
+        () => repo.crearReserva(reserva),
+        throwsA(isA<ReservaNoDisponibleException>()),
+      );
     });
   });
 }

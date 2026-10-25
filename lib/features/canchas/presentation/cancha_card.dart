@@ -6,51 +6,57 @@ import 'package:reservacancha/features/canchas/presentation/deportes.dart';
 
 /// Tarjeta del listado: imagen, nombre, deporte y precio por hora.
 class CanchaCard extends StatelessWidget {
-  const CanchaCard({super.key, required this.cancha});
+  const CanchaCard({super.key, required this.cancha, this.alTocar});
 
   final Cancha cancha;
+
+  /// Si es `null`, la tarjeta no responde a toques.
+  final VoidCallback? alTocar;
 
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: _ImagenCancha(cancha: cancha),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(cancha.nombre, style: tema.textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(
-                        nombreDeporte(cancha.deporte),
-                        style: tema.textTheme.bodyMedium?.copyWith(
-                          color: tema.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  '${formatearMoneda(cancha.precioPorHora)}/h',
-                  style: tema.textTheme.titleMedium?.copyWith(
-                    color: tema.colorScheme.primary,
-                  ),
-                ),
-              ],
+      child: InkWell(
+        onTap: alTocar,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: ImagenCancha(cancha: cancha),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(cancha.nombre, style: tema.textTheme.titleMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          nombreDeporte(cancha.deporte),
+                          style: tema.textTheme.bodyMedium?.copyWith(
+                            color: tema.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${formatearMoneda(cancha.precioPorHora)}/h',
+                    style: tema.textTheme.titleMedium?.copyWith(
+                      color: tema.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -58,8 +64,8 @@ class CanchaCard extends StatelessWidget {
 
 /// Foto de la cancha. Mientras no haya foto (o si no carga), muestra el icono
 /// del deporte sobre el color del tema.
-class _ImagenCancha extends StatelessWidget {
-  const _ImagenCancha({required this.cancha});
+class ImagenCancha extends StatelessWidget {
+  const ImagenCancha({super.key, required this.cancha});
 
   final Cancha cancha;
 
