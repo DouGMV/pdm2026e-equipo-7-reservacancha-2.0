@@ -36,6 +36,16 @@ qué especificaste, qué revisaste y qué rechazaste.
 - **Commit / PR:** `eb80291`, issue #31.
 ---
 
+## 2026-10-24 · @DouGMV — Conectar la app con Firebase (issue #5)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Guiarme para crear el proyecto de Firebase (plan Spark), habilitar Authentication con correo y Firestore, conectar la app con `flutterfire configure`, publicar `firestore.rules` y los índices, e inicializar Firebase en `main.dart`."
+- **Resultado:** proyecto `reservachancha`; `lib/firebase_options.dart`, `android/app/google-services.json` y el plugin de Google Services; `firebase.json`, `.firebaserc` y `firestore.indexes.json` para publicar reglas e índices con `firebase deploy --only firestore`; `fake_cloud_firestore` en `dev_dependencies` (aprobado por el líder técnico, es un paquete opcional de `docs/TECNOLOGIAS.md`).
+- **Aceptado:** la base `(default)` en `nam5`, porque `FirebaseFirestore.instance` usa esa base y el plan Spark solo permite una.
+- **Rechazado / corregido:** `flutterfire` no estaba en el PATH y la primera vez se ejecutó fuera del repositorio; se usó `dart pub global run flutterfire_cli:flutterfire` desde la carpeta del proyecto.
+- **Verificación:** índices consultados con `firebase firestore:indexes`; `flutter analyze` sin observaciones y 73 pruebas en verde. La compilación de Android no se pudo probar en este equipo (sin Android SDK); queda para un emulador del equipo.
+- **Commit / PR:** issue #5.
+
 ## 2026-10-22 · @DouGMV — Laboratorio S15, navegación con barra inferior
 
 - **Herramienta:** Claude Code.

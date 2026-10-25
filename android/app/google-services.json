@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "981310198070",
+    "project_id": "reservachancha",
+    "storage_bucket": "reservachancha.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:981310198070:android:a89646aacddc74e3f52397",
+        "android_client_info": {
+          "package_name": "com.equipo7.reservacancha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "981310198070-101gojfvhgg72rbosem8sd7tonio749m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUPxZ_VDeGhKKwqttrPnyxu98EQqjvAdA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "981310198070-101gojfvhgg72rbosem8sd7tonio749m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
