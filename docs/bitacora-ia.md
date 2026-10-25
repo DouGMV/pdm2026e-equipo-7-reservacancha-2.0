@@ -15,6 +15,19 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-24 · @Lilfacce — Listado de canchas con tarjetas y filtro por deporte (#18)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Terminar el issue #18 en `feat/18-listado-canchas`: tarjetas con imagen, nombre, deporte y precio con `formatearMoneda`, chips de filtro por deporte sobre `canchasProvider` y sus pruebas. Reutilizar lo hecho en el #31."
+- **Resultado:** `CanchaCard`, el filtro del listado (`filtroListadoProvider`), `canchasProvider` dependiente del filtro, el vacío según el filtro y 3 pruebas nuevas.
+- **Aceptado:** reutilizar `FiltroDeporteChips` y `FiltroCanchas` del #31; un filtro **separado** del de administración, para que cada pestaña conserve el suyo; mover `FiltroCanchasNotifier` a `canchas_providers.dart` para que el listado no dependa de los providers de admin.
+- **Rechazado / corregido:**
+  - Las canchas de ejemplo no tienen foto (`imagenUrl` vacío) y no hay assets. En lugar de inventar URLs externas, la tarjeta muestra el icono del deporte sobre el color del tema, y usa `Image.network` con `errorBuilder` cuando haya foto.
+  - La prueba de la barra (#33) buscaba "el" `Scrollable` de `CanchasScreen`; con los chips hay dos. Se cambió por la lista vertical (`AxisDirection.down`), sin tocar lo que comprueba.
+  - En un teléfono de 400 px, los chips de Voleibol y Pádel quedan fuera de la pantalla y la prueba no podía tocarlos. Se usa `ensureVisible` antes de tocar, como haría el usuario al desplazar los chips.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 76 pruebas en verde en local.
+- **Commit / PR:** issue #18.
+
 ## 2026-10-22 · @NathalyR15 — Laboratorio S15 (repositorio de canchas en memoria: eliminar y restaurar)
 
 - **Herramienta:** Claude (chat, paso a paso; no tengo Claude Code).
