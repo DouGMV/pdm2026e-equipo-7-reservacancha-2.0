@@ -5,6 +5,9 @@ abstract interface class CanchasRepository {
   /// Devuelve las canchas del [deporte] indicado, o todas si es `null`.
   Future<List<Cancha>> obtenerCanchas({String? deporte});
 
+  /// La cancha con ese [id], o `null` si no existe.
+  Future<Cancha?> obtenerCancha(String id);
+
   Future<void> eliminar(String id);
 
   /// Vuelve a guardar la [cancha] idéntica, con el mismo id.

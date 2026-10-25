@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/misc.dart';
 import 'package:reservacancha/features/auth/data/auth_repository_fake.dart';
 import 'package:reservacancha/features/auth/data/auth_repository_provider.dart';
+import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_fake.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_fake.dart';
@@ -15,5 +16,9 @@ List<Override> repositoriosEnMemoria() => [
     return repositorio;
   }),
   canchasRepositoryProvider.overrideWith((ref) => CanchasRepositoryFake()),
-  reservasRepositoryProvider.overrideWith((ref) => ReservasRepositoryFake()),
+  reservasRepositoryProvider.overrideWith(
+    (ref) => ReservasRepositoryFake(
+      usuarioActual: () => ref.read(sesionProvider).value?.uid ?? usuarioDemo,
+    ),
+  ),
 ];

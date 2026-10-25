@@ -28,6 +28,13 @@ class CanchasRepositoryFirestore implements CanchasRepository {
   }
 
   @override
+  Future<Cancha?> obtenerCancha(String id) async {
+    final doc = await _canchas.doc(id).get();
+    final datos = doc.data();
+    return datos == null ? null : CanchaModel.fromMap(doc.id, datos);
+  }
+
+  @override
   Future<void> eliminar(String id) => _canchas.doc(id).delete();
 
   @override

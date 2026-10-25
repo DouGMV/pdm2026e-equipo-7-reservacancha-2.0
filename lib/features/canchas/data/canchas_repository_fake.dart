@@ -25,6 +25,15 @@ class CanchasRepositoryFake implements CanchasRepository {
   }
 
   @override
+  Future<Cancha?> obtenerCancha(String id) async {
+    await Future<void>.delayed(demora);
+    for (final cancha in _canchas) {
+      if (cancha.id == id) return cancha;
+    }
+    return null;
+  }
+
+  @override
   Future<void> eliminar(String id) async {
     await Future<void>.delayed(demora);
     final indice = _canchas.indexWhere((cancha) => cancha.id == id);

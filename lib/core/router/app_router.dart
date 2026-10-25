@@ -10,6 +10,7 @@ import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 import 'package:reservacancha/features/auth/presentation/login_screen.dart';
 import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
 import 'package:reservacancha/features/canchas/presentation/detalle_cancha_screen.dart';
+import 'package:reservacancha/features/reservas/domain/solicitud_reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/confirmar_reserva_screen.dart';
 
 /// Rutas de la app (ver docs/ARQUITECTURA.md).
@@ -21,6 +22,7 @@ abstract final class AppRoutes {
   /// Perfil son pestañas, ver `navegacion_provider.dart`).
   static const canchas = '/';
   static const detalleCancha = '/cancha/:id';
+  static String detalleDe(String canchaId) => '/cancha/$canchaId';
   static const confirmarReserva = '/reserva/confirmar';
   static const adminCanchas = '/admin/canchas';
   static const adminReservas = '/admin/reservas';
@@ -60,7 +62,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.confirmarReserva,
-        builder: (context, state) => const ConfirmarReservaScreen(),
+        // La solicitud llega en `extra` desde el detalle de la cancha.
+        builder: (context, state) => ConfirmarReservaScreen(
+          solicitud: state.extra is SolicitudReserva
+              ? state.extra! as SolicitudReserva
+              : null,
+        ),
       ),
       GoRoute(
         path: AppRoutes.adminCanchas,

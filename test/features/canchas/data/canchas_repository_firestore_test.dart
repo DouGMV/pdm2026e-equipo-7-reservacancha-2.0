@@ -65,4 +65,9 @@ void main() {
     expect(cancha.deporte, '');
     expect(cancha.activa, isTrue);
   });
+
+  test('obtenerCancha devuelve la cancha o null si no existe', () async {
+    expect((await repositorio.obtenerCancha('c3'))?.nombre, 'Beta');
+    expect(await repositorio.obtenerCancha('no-existe'), isNull);
+  });
 }

@@ -28,3 +28,9 @@ final canchasProvider = FutureProvider<List<Cancha>>((ref) {
       .watch(canchasRepositoryProvider)
       .obtenerCanchas(deporte: filtro.deporte);
 }, retry: (_, _) => null);
+
+/// Una cancha por id, para el detalle. `null` si no existe.
+final canchaProvider = FutureProvider.autoDispose.family<Cancha?, String>(
+  (ref, id) => ref.watch(canchasRepositoryProvider).obtenerCancha(id),
+  retry: (_, _) => null,
+);
