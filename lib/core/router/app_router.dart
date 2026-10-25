@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:reservacancha/core/router/inicio_shell.dart';
+import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/router/redireccion.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
@@ -33,7 +34,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   // evaluar `redirect` cada vez que cambia la sesión, sin recrear el router
   // (recrearlo perdería el historial de navegación).
   final cambiosDeSesion = ValueNotifier<int>(0);
-  ref.listen(sesionProvider, (_, _) => cambiosDeSesion.value++);
+  ref.listen(sesionProvider, (anterior, siguiente) {
+    cambiosDeSesion.value++;
+    // Cada usuario empieza en Canchas: sin esto, quien inicie sesión después
+    // de un "Cerrar sesión" entraría directo a la pestaña Perfil.
+    if (anterior?.value?.uid != siguiente.value?.uid) {
+      ref.read(navegacionProvider.notifier).ir(Pestana.canchas);
+    }
+  });
 
   final router = GoRouter(
     initialLocation: AppRoutes.login,

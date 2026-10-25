@@ -15,6 +15,20 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-25 · @Lilfacce — Pantalla de Perfil y cerrar sesión (#44)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer el issue #44 en `feature/44-pantalla-perfil`: mostrar nombre, correo, teléfono y rol desde `sesionProvider`, botón Cerrar sesión con confirmación que use `AuthController.cerrarSesion()`, estados de carga y error, pruebas con un repositorio de auth falso. Además, reiniciar la pestaña activa al cambiar de usuario (lo ofrecí en la revisión del #45)."
+- **Resultado:** `PerfilScreen` con los datos, el diálogo de confirmación y el aviso si falla; el reinicio de la navegación en `app_router.dart`; 8 pruebas nuevas.
+- **Aceptado:** reiniciar la pestaña desde el `ref.listen(sesionProvider)` que ya tenía el router, cuando cambia el `uid`; borrar `Proximamente`, que ya no usaba ninguna pantalla.
+- **Rechazado / corregido:**
+  - Se descartó que `navegacionProvider` hiciera `watch` de la sesión: cualquier prueba que lo usara sin sustituir la autenticación intentaría abrir Firebase.
+  - Al cerrar sesión bien, el router quita la pantalla; usar `ref` después del `await` fallaba. Se comprueba `context.mounted` antes.
+  - La prueba de error con Reintentar pasaba sin mostrar el error: el reintento automático de Riverpod en `sesionProvider` resolvía el segundo intento solo. La falla ahora dura hasta que la prueba la quita.
+  - La prueba de la barra (#33) esperaba "Próximamente" en Perfil; ahora espera el botón Cerrar sesión.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 150 pruebas en verde. Prueba de mutación: sin el reinicio de la navegación, la prueba del flujo completo falla (el siguiente usuario entraba a Perfil).
+- **Commit / PR:** issue #44.
+
 ## 2026-10-24 · @Lilfacce — Listado de canchas con tarjetas y filtro por deporte (#18)
 
 - **Herramienta:** Claude Code.
