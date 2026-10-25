@@ -3,14 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/filtro_canchas.dart';
-
-class FiltroCanchasNotifier extends Notifier<FiltroCanchas> {
-  @override
-  FiltroCanchas build() => const FiltroCanchas();
-
-  void seleccionarDeporte(String? deporte) =>
-      state = FiltroCanchas(deporte: deporte);
-}
+import 'package:reservacancha/features/canchas/presentation/canchas_providers.dart';
 
 final filtroCanchasProvider =
     NotifierProvider<FiltroCanchasNotifier, FiltroCanchas>(

@@ -113,9 +113,13 @@ void main() {
     await _mostrarApp(tester);
     await tester.pumpAndSettle();
 
+    // La lista vertical; los chips de filtro tienen su propio scroll horizontal.
     final listaCanchas = find.descendant(
       of: find.byType(CanchasScreen),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     await tester.drag(listaCanchas, const Offset(0, -300));
     await tester.pumpAndSettle();
