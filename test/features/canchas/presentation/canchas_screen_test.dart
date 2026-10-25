@@ -8,7 +8,7 @@ import 'package:reservacancha/features/canchas/presentation/cancha_card.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_screen.dart';
 
 /// Repositorio falso que se puede hacer fallar, vaciar o volver lento.
-class _CanchasRepositoryControlable implements CanchasRepository {
+class _CanchasRepositoryControlable extends Fake implements CanchasRepository {
   bool fallar = false;
   List<Cancha> canchas = const [_cancha];
   Duration demora = Duration.zero;

@@ -185,3 +185,26 @@ qué especificaste, qué revisaste y qué rechazaste.
   - La prueba de registro usaba `ana@correo.com`, que ahora existe en el repositorio en memoria; se cambió a `luis@correo.com` y se agregó una prueba para el correo repetido.
   - En `app_router_test.dart` el helper de navegación usaba `GoRouter.of` desde un widget arriba de `MaterialApp.router` y fallaba con *No GoRouter found in context*; se cambió a leer `appRouterProvider` del contenedor de Riverpod.
 - **Verificación:** `dart format .` sin cambios, `flutter analyze` sin observaciones y 98 pruebas en verde; probado a mano en el emulador (API 36) con las cuentas cliente y admin.
+## 2026-10-25 · @DouGMV — Repositorios de Firebase (#49)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Reemplazar los repositorios en memoria por Firebase Auth y Cloud Firestore solo en `data/`, sin tocar `domain/` ni las pantallas, y probar con `fake_cloud_firestore` y `mocktail`."
+- **Resultado:** `AuthRepositoryFirebase`, `CanchasRepositoryFirestore`, `ReservasRepositoryFirestore` y sus modelos (`UsuarioModel`, `CanchaModel`, `ReservaModel`); los providers usan Firebase y las pruebas de la app completa usan los repositorios en memoria con `repositoriosEnMemoria()`.
+- **Aceptado:** traducir los códigos de error de Firebase Auth a mensajes en español, ordenar las canchas en el cliente para no crear un índice por filtro y que "Mis reservas" se vuelva a consultar al cambiar de sesión.
+- **Rechazado / corregido:**
+  - Al cambiar los providers a Firebase fallaron las pruebas que montan `App` (Firebase no está inicializado en pruebas); se agregó el helper con overrides en lugar de condicionar el código de producción.
+  - Al borrar una cancha en Admin, la pestaña Canchas seguía mostrando la lista vieja porque el `IndexedStack` la mantiene viva; ahora se invalida `canchasProvider`.
+  - Faltaba un índice para "Todas" las reservas de Admin (orden por fecha y hora sin filtro) y la regla no dejaba al admin restaurar reservas de otros usuarios; se agregaron ambos.
+- **Verificación:** `flutter analyze` sin observaciones y 115 pruebas en verde.
+
+## 2026-10-25 · @DouGMV — Ver disponibilidad y reservar (#52)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Detalle de cancha con fecha (7 días) y bloques de una hora, confirmación con el total y creación de la reserva en una transacción con id `{canchaId}_{yyyyMMdd}_{HH}`, como dice `docs/ARQUITECTURA.md`. Lógica de horarios en `domain/` para probarla sin Flutter."
+- **Resultado:** `horarios.dart` (`idReserva`, `bloquesDelDia`, `proximosDias`), `SolicitudReserva`, `ReservaNoDisponibleException`, `obtenerCancha`, `obtenerHorasOcupadas` y `crearReserva` (Firestore y memoria), `ReservarController`, `DetalleCanchaScreen`, `ConfirmarReservaScreen` y la tarjeta del listado que abre el detalle.
+- **Aceptado:** el reloj como provider (`relojProvider`) para probar "horas que ya pasaron" sin depender de la hora real, y que una hora elegida deje de contar como elegida si otra persona la reserva.
+- **Rechazado / corregido:**
+  - Los ids de ejemplo del repositorio en memoria tenían la hora sin cero (`_7`); la arquitectura pide `HH`, se corrigió a `_07`. La prueba de "otra persona ganó el horario" no fallaba por esa diferencia de id y así se detectó.
+  - La prueba del flujo completo se quedaba colgada: esperaba un `Future.delayed` del repositorio dentro del reloj falso de `testWidgets`; se cambió a `tester.runAsync`.
+  - En la pantalla de prueba de 800 × 600 la tarjeta quedaba fuera de vista; se usa un tamaño de teléfono (360 × 800).
+- **Verificación:** `flutter analyze` sin observaciones y 142 pruebas en verde (incluye la transacción con `fake_cloud_firestore` y el flujo login → detalle → confirmar → Mis reservas).

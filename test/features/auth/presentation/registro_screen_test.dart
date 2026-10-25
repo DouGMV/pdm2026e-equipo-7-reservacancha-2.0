@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/app.dart';
+
 import 'package:reservacancha/features/auth/presentation/registro_screen.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_screen.dart';
 
+import '../../../helpers/repositorios_en_memoria.dart';
+
 void main() {
   Future<void> abrirApp(WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(
+      ProviderScope(overrides: repositoriosEnMemoria(), child: const App()),
+    );
     await tester.pumpAndSettle();
   }
 

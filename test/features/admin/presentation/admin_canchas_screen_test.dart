@@ -7,7 +7,7 @@ import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
 
 /// Repositorio en memoria que se puede hacer fallar al eliminar.
-class _CanchasRepositoryEnMemoria implements CanchasRepository {
+class _CanchasRepositoryEnMemoria extends Fake implements CanchasRepository {
   _CanchasRepositoryEnMemoria(List<Cancha> iniciales)
     : canchas = [...iniciales];
 

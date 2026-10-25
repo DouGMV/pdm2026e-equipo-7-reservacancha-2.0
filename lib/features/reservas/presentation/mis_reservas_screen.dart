@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
+import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
 
@@ -41,23 +42,54 @@ class MisReservasScreen extends ConsumerWidget {
   }
 }
 
-class _ListaReservas extends StatelessWidget {
+class _ListaReservas extends ConsumerWidget {
   const _ListaReservas({required this.reservas});
 
   final List<Reserva> reservas;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colores = Theme.of(context).colorScheme;
+    final ahora = DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
     return ListView.separated(
       itemCount: reservas.length,
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final reserva = reservas[index];
         final confirmada = reserva.estado == EstadoReserva.confirmada;
+        final fechaReserva = DateTime.tryParse(reserva.fecha);
+        final fechaReservaSinHora = fechaReserva == null
+            ? hoy.add(const Duration(days: 1))
+            : DateTime(fechaReserva.year, fechaReserva.month, fechaReserva.day);
+        final esFutura =
+            fechaReservaSinHora.isAfter(hoy) ||
+            (fechaReservaSinHora.isAtSameMomentAs(hoy) &&
+                reserva.hora > ahora.hour);
+        final puedeCancelar = confirmada && esFutura;
+
         return ListTile(
           title: Text(reserva.canchaNombre),
-          subtitle: Text('${reserva.fecha} · ${formatearHora(reserva.hora)}'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${reserva.fecha} · ${formatearHora(reserva.hora)}'),
+              if (puedeCancelar)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _cancelarReserva(context, ref, reserva),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+            ],
+          ),
           trailing: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -74,6 +106,49 @@ class _ListaReservas extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _cancelarReserva(
+    BuildContext context,
+    WidgetRef ref,
+    Reserva reserva,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar reserva'),
+        content: const Text('¿Seguro que deseas cancelar esta reserva?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sí'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) {
+      return;
+    }
+
+    try {
+      await ref.read(reservasRepositoryProvider).cancelar(reserva.id);
+      ref.invalidate(misReservasProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No pudimos cancelar la reserva. Inténtalo de nuevo.',
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 

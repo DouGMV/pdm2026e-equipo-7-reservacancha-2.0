@@ -23,8 +23,10 @@ class AdminCanchasNotifier extends AsyncNotifier<List<Cancha>> {
 
   /// Borra primero en el repositorio. Si falla, la excepción llega a la
   /// pantalla y la lista no cambia.
-  Future<void> eliminar(Cancha cancha) =>
-      ref.read(canchasRepositoryProvider).eliminar(cancha.id);
+  Future<void> eliminar(Cancha cancha) async {
+    await ref.read(canchasRepositoryProvider).eliminar(cancha.id);
+    _actualizarListadoCliente();
+  }
 
   /// Quita la cancha de la lista sin volver a consultar. El `Dismissible`
   /// necesita que la fila salga del árbol en cuanto termina de deslizarse.
@@ -39,7 +41,15 @@ class AdminCanchasNotifier extends AsyncNotifier<List<Cancha>> {
 
   Future<void> restaurar(Cancha cancha) async {
     await ref.read(canchasRepositoryProvider).restaurar(cancha);
-    if (ref.mounted) ref.invalidateSelf();
+    if (!ref.mounted) return;
+    ref.invalidateSelf();
+    _actualizarListadoCliente();
+  }
+
+  /// La pestaña Canchas sigue viva en el `IndexedStack` de la barra: sin
+  /// esto mostraría la lista anterior al volver a ella.
+  void _actualizarListadoCliente() {
+    if (ref.mounted) ref.invalidate(canchasProvider);
   }
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/presentation/cancha_card.dart';
@@ -76,7 +78,10 @@ class _ListaCanchas extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: canchas.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => CanchaCard(cancha: canchas[index]),
+      itemBuilder: (context, index) => CanchaCard(
+        cancha: canchas[index],
+        alTocar: () => context.push(AppRoutes.detalleDe(canchas[index].id)),
+      ),
     );
   }
 }

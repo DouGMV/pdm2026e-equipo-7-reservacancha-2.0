@@ -26,6 +26,14 @@
         { "fieldPath": "fecha", "order": "DESCENDING" },
         { "fieldPath": "hora", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "reservas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "fecha", "order": "DESCENDING" },
+        { "fieldPath": "hora", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
