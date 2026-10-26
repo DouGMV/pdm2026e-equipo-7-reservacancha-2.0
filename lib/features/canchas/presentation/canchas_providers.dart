@@ -19,14 +19,19 @@ final filtroListadoProvider =
       FiltroCanchasNotifier.new,
     );
 
-/// Listado de canchas. Hace `watch` del filtro, así que al cambiarlo la
-/// consulta se repite sola. El reintento automático de Riverpod 3 se desactiva
-/// para que el error llegue a la pantalla y el usuario decida cuándo reintentar.
-final canchasProvider = FutureProvider<List<Cancha>>((ref) {
+/// Listado de canchas activas. Hace `watch` del filtro, así que al cambiarlo
+/// la consulta se repite sola. El reintento automático de Riverpod 3 se
+/// desactiva para que el error llegue a la pantalla y el usuario decida cuándo
+/// reintentar.
+final canchasProvider = FutureProvider<List<Cancha>>((ref) async {
   final filtro = ref.watch(filtroListadoProvider);
-  return ref
+  final canchas = await ref
       .watch(canchasRepositoryProvider)
       .obtenerCanchas(deporte: filtro.deporte);
+  return [
+    for (final cancha in canchas)
+      if (cancha.activa) cancha,
+  ];
 }, retry: (_, _) => null);
 
 /// Una cancha por id, para el detalle. `null` si no existe.

@@ -98,4 +98,21 @@ void main() {
       expect(validarTelefono('55551234'), isNull);
     });
   });
+
+  group('validarPrecio', () {
+    test('obligatorio', () {
+      expect(validarPrecio(''), 'Introduce el precio por hora');
+    });
+
+    test('mayor que cero y numérico', () {
+      expect(validarPrecio('0'), 'Introduce un precio mayor que 0');
+      expect(validarPrecio('abc'), 'Introduce un precio mayor que 0');
+      expect(validarPrecio('-5'), 'Introduce un precio mayor que 0');
+    });
+
+    test('acepta enteros y decimales', () {
+      expect(validarPrecio('150'), isNull);
+      expect(validarPrecio(' 87.50 '), isNull);
+    });
+  });
 }

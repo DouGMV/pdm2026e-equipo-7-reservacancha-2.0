@@ -29,4 +29,17 @@ class Cancha {
   /// Hora de cierre en formato de 24 horas, por ejemplo `22`.
   final int horaCierre;
   final bool activa;
+
+  Cancha copyWith({String? id, bool? activa}) => Cancha(
+    id: id ?? this.id,
+    nombre: nombre,
+    deporte: deporte,
+    descripcion: descripcion,
+    ubicacion: ubicacion,
+    precioPorHora: precioPorHora,
+    imagenUrl: imagenUrl,
+    horaApertura: horaApertura,
+    horaCierre: horaCierre,
+    activa: activa ?? this.activa,
+  );
 }

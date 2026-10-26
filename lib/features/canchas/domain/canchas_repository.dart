@@ -8,6 +8,17 @@ abstract interface class CanchasRepository {
   /// La cancha con ese [id], o `null` si no existe.
   Future<Cancha?> obtenerCancha(String id);
 
+  /// Guarda una cancha nueva y devuelve el id que se le asignó (se ignora
+  /// `cancha.id`).
+  Future<String> crear(Cancha cancha);
+
+  /// Reemplaza los datos de la cancha con el mismo id.
+  Future<void> actualizar(Cancha cancha);
+
+  /// Activa o desactiva la cancha sin borrarla. Las inactivas no aparecen
+  /// en el listado del cliente.
+  Future<void> cambiarActiva(String id, {required bool activa});
+
   Future<void> eliminar(String id);
 
   /// Vuelve a guardar la [cancha] idéntica, con el mismo id.

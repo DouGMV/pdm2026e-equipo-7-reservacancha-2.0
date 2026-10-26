@@ -140,4 +140,26 @@ void main() {
 
     expect(segunda, same(primera));
   });
+
+  group('crear, actualizar y cambiarActiva', () {
+    test('en memoria', () async {
+      final repositorio = CanchasRepositoryFake(demora: Duration.zero);
+      final base = (await repositorio.obtenerCancha('cancha-1'))!;
+
+      final id = await repositorio.crear(base);
+      expect(id, isNot('cancha-1'));
+      expect(await repositorio.obtenerCancha(id), isNotNull);
+
+      await repositorio.cambiarActiva('cancha-1', activa: false);
+      expect((await repositorio.obtenerCancha('cancha-1'))!.activa, isFalse);
+
+      await repositorio.actualizar(base);
+      expect((await repositorio.obtenerCancha('cancha-1'))!.activa, isTrue);
+
+      expect(
+        () => repositorio.cambiarActiva('no-existe', activa: true),
+        throwsStateError,
+      );
+    });
+  });
 }

@@ -222,3 +222,15 @@ qué especificaste, qué revisaste y qué rechazaste.
   - La prueba del flujo completo se quedaba colgada: esperaba un `Future.delayed` del repositorio dentro del reloj falso de `testWidgets`; se cambió a `tester.runAsync`.
   - En la pantalla de prueba de 800 × 600 la tarjeta quedaba fuera de vista; se usa un tamaño de teléfono (360 × 800).
 - **Verificación:** `flutter analyze` sin observaciones y 142 pruebas en verde (incluye la transacción con `fake_cloud_firestore` y el flujo login → detalle → confirmar → Mis reservas).
+
+## 2026-10-25 · @DouGMV — Crear, editar y desactivar canchas (#47) y datos de prueba (#48)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer el #47 y el #48 con los criterios de los issues: `crear`, `actualizar` y desactivar en los dos repositorios, formulario con validación, interruptor de activa, listado del cliente solo con canchas activas, y una forma de cargar datos de prueba en Firebase sin escribirlos a mano."
+- **Resultado:** `CanchasRepository.crear`, `actualizar` y `cambiarActiva` (Firestore y memoria), `Cancha.copyWith`, `CanchaFormScreen` en `/admin/canchas/nueva` y `/admin/canchas/:id/editar`, interruptor en la lista de admin, botón "Cargar canchas de ejemplo" con la lista lista de `canchas_de_ejemplo.dart`, `validarPrecio` y la guía del README para crear el administrador.
+- **Aceptado:** cargar los datos desde la app como admin en lugar de un script: no hace falta una cuenta de servicio ni credenciales fuera de la app, y las reglas de Firestore ya exigen ser admin para escribir canchas.
+- **Rechazado / corregido:**
+  - Un solo método `cambiarActiva` en lugar de `desactivar`, porque el interruptor también tiene que poder volver a activar.
+  - La prueba de "el cierre debe ser después de la apertura" dependía de que el menú desplegable construyera la hora elegida, que no siempre está en pantalla; se quitó y la regla queda en el validador del formulario.
+  - Crear el administrador sigue siendo manual en la consola: las reglas no dejan que nadie se dé el rol `admin` desde la app, y así debe quedar.
+- **Verificación:** `flutter analyze` sin observaciones y 161 pruebas en verde.
