@@ -15,6 +15,33 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-25 · @Lilfacce — Pantalla de Perfil y cerrar sesión (#44)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer el issue #44 en `feature/44-pantalla-perfil`: mostrar nombre, correo, teléfono y rol desde `sesionProvider`, botón Cerrar sesión con confirmación que use `AuthController.cerrarSesion()`, estados de carga y error, pruebas con un repositorio de auth falso. Además, reiniciar la pestaña activa al cambiar de usuario (lo ofrecí en la revisión del #45)."
+- **Resultado:** `PerfilScreen` con los datos, el diálogo de confirmación y el aviso si falla; el reinicio de la navegación en `app_router.dart`; 8 pruebas nuevas.
+- **Aceptado:** reiniciar la pestaña desde el `ref.listen(sesionProvider)` que ya tenía el router, cuando cambia el `uid`; borrar `Proximamente`, que ya no usaba ninguna pantalla.
+- **Rechazado / corregido:**
+  - Se descartó que `navegacionProvider` hiciera `watch` de la sesión: cualquier prueba que lo usara sin sustituir la autenticación intentaría abrir Firebase.
+  - Al cerrar sesión bien, el router quita la pantalla; usar `ref` después del `await` fallaba. Se comprueba `context.mounted` antes.
+  - La prueba de error con Reintentar pasaba sin mostrar el error: el reintento automático de Riverpod en `sesionProvider` resolvía el segundo intento solo. La falla ahora dura hasta que la prueba la quita.
+  - La prueba de la barra (#33) esperaba "Próximamente" en Perfil; ahora espera el botón Cerrar sesión.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 150 pruebas en verde. Prueba de mutación: sin el reinicio de la navegación, la prueba del flujo completo falla (el siguiente usuario entraba a Perfil).
+- **Commit / PR:** issue #44.
+
+## 2026-10-24 · @Lilfacce — Listado de canchas con tarjetas y filtro por deporte (#18)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Terminar el issue #18 en `feat/18-listado-canchas`: tarjetas con imagen, nombre, deporte y precio con `formatearMoneda`, chips de filtro por deporte sobre `canchasProvider` y sus pruebas. Reutilizar lo hecho en el #31."
+- **Resultado:** `CanchaCard`, el filtro del listado (`filtroListadoProvider`), `canchasProvider` dependiente del filtro, el vacío según el filtro y 3 pruebas nuevas.
+- **Aceptado:** reutilizar `FiltroDeporteChips` y `FiltroCanchas` del #31; un filtro **separado** del de administración, para que cada pestaña conserve el suyo; mover `FiltroCanchasNotifier` a `canchas_providers.dart` para que el listado no dependa de los providers de admin.
+- **Rechazado / corregido:**
+  - Las canchas de ejemplo no tienen foto (`imagenUrl` vacío) y no hay assets. En lugar de inventar URLs externas, la tarjeta muestra el icono del deporte sobre el color del tema, y usa `Image.network` con `errorBuilder` cuando haya foto.
+  - La prueba de la barra (#33) buscaba "el" `Scrollable` de `CanchasScreen`; con los chips hay dos. Se cambió por la lista vertical (`AxisDirection.down`), sin tocar lo que comprueba.
+  - En un teléfono de 400 px, los chips de Voleibol y Pádel quedan fuera de la pantalla y la prueba no podía tocarlos. Se usa `ensureVisible` antes de tocar, como haría el usuario al desplazar los chips.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 76 pruebas en verde en local.
+- **Commit / PR:** issue #18.
+
 ## 2026-10-22 · @NathalyR15 — Laboratorio S15 (repositorio de canchas en memoria: eliminar y restaurar)
 
 - **Herramienta:** Claude (chat, paso a paso; no tengo Claude Code).
@@ -35,6 +62,16 @@ qué especificaste, qué revisaste y qué rechazaste.
 - **Verificación:** `dart format .`, `flutter analyze` sin observaciones y `flutter test` con las 38 pruebas en verde. Corrí aparte las pruebas del repositorio (12 en verde) para confirmar que mi archivo se ejecutaba.
 - **Commit / PR:** `eb80291`, issue #31.
 ---
+
+## 2026-10-24 · @DouGMV — Conectar la app con Firebase (issue #5)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Guiarme para crear el proyecto de Firebase (plan Spark), habilitar Authentication con correo y Firestore, conectar la app con `flutterfire configure`, publicar `firestore.rules` y los índices, e inicializar Firebase en `main.dart`."
+- **Resultado:** proyecto `reservachancha`; `lib/firebase_options.dart`, `android/app/google-services.json` y el plugin de Google Services; `firebase.json`, `.firebaserc` y `firestore.indexes.json` para publicar reglas e índices con `firebase deploy --only firestore`; `fake_cloud_firestore` en `dev_dependencies` (aprobado por el líder técnico, es un paquete opcional de `docs/TECNOLOGIAS.md`).
+- **Aceptado:** la base `(default)` en `nam5`, porque `FirebaseFirestore.instance` usa esa base y el plan Spark solo permite una.
+- **Rechazado / corregido:** `flutterfire` no estaba en el PATH y la primera vez se ejecutó fuera del repositorio; se usó `dart pub global run flutterfire_cli:flutterfire` desde la carpeta del proyecto.
+- **Verificación:** índices consultados con `firebase firestore:indexes`; `flutter analyze` sin observaciones y 73 pruebas en verde. La compilación de Android no se pudo probar en este equipo (sin Android SDK); queda para un emulador del equipo.
+- **Commit / PR:** issue #5.
 
 ## 2026-10-22 · @DouGMV — Laboratorio S15, navegación con barra inferior
 
@@ -150,3 +187,50 @@ qué especificaste, qué revisaste y qué rechazaste.
   - Los comandos de GitHub que propuso para PowerShell fallaron por el manejo de comillas; se reemplazaron por `gh project edit`.
   - El modo automático de la herramienta bloqueó los cambios de configuración del repositorio; Douglas los ejecutó manualmente.
 - **Verificación:** `flutter analyze` sin observaciones, 6 pruebas en verde y CI en verde en el PR #1.
+
+## 2026-10-24 · @AngelOvalle29 — Providers de sesión y redirección del router (#7)
+
+- **Herramienta:** Claude (claude.ai).
+- **Especificación:** "Con el issue #7, `docs/ARQUITECTURA.md` y el código actual de `develop`: contrato de `AuthRepository` en `domain/`, repositorio en memoria en `data/` (sin Firebase), `sesionProvider` y `AuthController` con Riverpod, `redirect` del router por sesión y rol, y pruebas. Sin paquetes nuevos y sin tocar `main.dart` para no chocar con el PR #41."
+- **Resultado:** `AuthRepository`, `Usuario`, `AuthException`, `AuthRepositoryFake`, `sesionProvider`, `AuthController`, `calcularRedireccion` (función pura) y `refreshListenable` en `appRouterProvider`; login y registro conectados al provider; pruebas unitarias y de widgets.
+- **Aceptado:** la separación por capas, que las pantallas no naveguen solas (decide el `redirect`) y la regla de redirección como función pura para probarla sin montar la app.
+- **Rechazado / corregido:**
+  - Al probar en el emulador encontré que un cliente que tocaba "Gestión de canchas" quedaba en una copia duplicada de `/` con una flecha que no funcionaba: el `push` se redirigía a `/`. La IA había propuesto dejar el filtro de la pestaña Admin para otro issue; se decidió incluirlo aquí y ocultar la pestaña a los clientes en `InicioShell`.
+  - La prueba de registro usaba `ana@correo.com`, que ahora existe en el repositorio en memoria; se cambió a `luis@correo.com` y se agregó una prueba para el correo repetido.
+  - En `app_router_test.dart` el helper de navegación usaba `GoRouter.of` desde un widget arriba de `MaterialApp.router` y fallaba con *No GoRouter found in context*; se cambió a leer `appRouterProvider` del contenedor de Riverpod.
+- **Verificación:** `dart format .` sin cambios, `flutter analyze` sin observaciones y 98 pruebas en verde; probado a mano en el emulador (API 36) con las cuentas cliente y admin.
+## 2026-10-25 · @DouGMV — Repositorios de Firebase (#49)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Reemplazar los repositorios en memoria por Firebase Auth y Cloud Firestore solo en `data/`, sin tocar `domain/` ni las pantallas, y probar con `fake_cloud_firestore` y `mocktail`."
+- **Resultado:** `AuthRepositoryFirebase`, `CanchasRepositoryFirestore`, `ReservasRepositoryFirestore` y sus modelos (`UsuarioModel`, `CanchaModel`, `ReservaModel`); los providers usan Firebase y las pruebas de la app completa usan los repositorios en memoria con `repositoriosEnMemoria()`.
+- **Aceptado:** traducir los códigos de error de Firebase Auth a mensajes en español, ordenar las canchas en el cliente para no crear un índice por filtro y que "Mis reservas" se vuelva a consultar al cambiar de sesión.
+- **Rechazado / corregido:**
+  - Al cambiar los providers a Firebase fallaron las pruebas que montan `App` (Firebase no está inicializado en pruebas); se agregó el helper con overrides en lugar de condicionar el código de producción.
+  - Al borrar una cancha en Admin, la pestaña Canchas seguía mostrando la lista vieja porque el `IndexedStack` la mantiene viva; ahora se invalida `canchasProvider`.
+  - Faltaba un índice para "Todas" las reservas de Admin (orden por fecha y hora sin filtro) y la regla no dejaba al admin restaurar reservas de otros usuarios; se agregaron ambos.
+- **Verificación:** `flutter analyze` sin observaciones y 115 pruebas en verde.
+
+## 2026-10-25 · @DouGMV — Ver disponibilidad y reservar (#52)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Detalle de cancha con fecha (7 días) y bloques de una hora, confirmación con el total y creación de la reserva en una transacción con id `{canchaId}_{yyyyMMdd}_{HH}`, como dice `docs/ARQUITECTURA.md`. Lógica de horarios en `domain/` para probarla sin Flutter."
+- **Resultado:** `horarios.dart` (`idReserva`, `bloquesDelDia`, `proximosDias`), `SolicitudReserva`, `ReservaNoDisponibleException`, `obtenerCancha`, `obtenerHorasOcupadas` y `crearReserva` (Firestore y memoria), `ReservarController`, `DetalleCanchaScreen`, `ConfirmarReservaScreen` y la tarjeta del listado que abre el detalle.
+- **Aceptado:** el reloj como provider (`relojProvider`) para probar "horas que ya pasaron" sin depender de la hora real, y que una hora elegida deje de contar como elegida si otra persona la reserva.
+- **Rechazado / corregido:**
+  - Los ids de ejemplo del repositorio en memoria tenían la hora sin cero (`_7`); la arquitectura pide `HH`, se corrigió a `_07`. La prueba de "otra persona ganó el horario" no fallaba por esa diferencia de id y así se detectó.
+  - La prueba del flujo completo se quedaba colgada: esperaba un `Future.delayed` del repositorio dentro del reloj falso de `testWidgets`; se cambió a `tester.runAsync`.
+  - En la pantalla de prueba de 800 × 600 la tarjeta quedaba fuera de vista; se usa un tamaño de teléfono (360 × 800).
+- **Verificación:** `flutter analyze` sin observaciones y 142 pruebas en verde (incluye la transacción con `fake_cloud_firestore` y el flujo login → detalle → confirmar → Mis reservas).
+
+## 2026-10-25 · @DouGMV — Crear, editar y desactivar canchas (#47) y datos de prueba (#48)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer el #47 y el #48 con los criterios de los issues: `crear`, `actualizar` y desactivar en los dos repositorios, formulario con validación, interruptor de activa, listado del cliente solo con canchas activas, y una forma de cargar datos de prueba en Firebase sin escribirlos a mano."
+- **Resultado:** `CanchasRepository.crear`, `actualizar` y `cambiarActiva` (Firestore y memoria), `Cancha.copyWith`, `CanchaFormScreen` en `/admin/canchas/nueva` y `/admin/canchas/:id/editar`, interruptor en la lista de admin, botón "Cargar canchas de ejemplo" con la lista lista de `canchas_de_ejemplo.dart`, `validarPrecio` y la guía del README para crear el administrador.
+- **Aceptado:** cargar los datos desde la app como admin en lugar de un script: no hace falta una cuenta de servicio ni credenciales fuera de la app, y las reglas de Firestore ya exigen ser admin para escribir canchas.
+- **Rechazado / corregido:**
+  - Un solo método `cambiarActiva` en lugar de `desactivar`, porque el interruptor también tiene que poder volver a activar.
+  - La prueba de "el cierre debe ser después de la apertura" dependía de que el menú desplegable construyera la hora elegida, que no siempre está en pantalla; se quitó y la regla queda en el validador del formulario.
+  - Crear el administrador sigue siendo manual en la consola: las reglas no dejan que nadie se dé el rol `admin` desde la app, y así debe quedar.
+- **Verificación:** `flutter analyze` sin observaciones y 161 pruebas en verde.

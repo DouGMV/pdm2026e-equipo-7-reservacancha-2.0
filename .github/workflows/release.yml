@@ -1,0 +1,64 @@
+# Release de ReservaCancha: al subir un tag `v*` (por ejemplo `v2.0.0`),
+# compila el APK en una máquina limpia y lo publica en GitHub Releases.
+# Así nadie necesita el Android SDK en su computadora para generar la entrega.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  # Si cambia la configuración de Android o este archivo, se compila el APK
+  # en el PR para saber antes del release que sigue compilando.
+  pull_request:
+    branches: [develop, main]
+    paths: ['android/**', 'pubspec.yaml', '.github/workflows/release.yml']
+  workflow_dispatch: # para probar la compilación sin crear un tag
+
+permissions:
+  contents: write # crear el Release y subir el APK
+
+jobs:
+  apk:
+    name: Compilar y publicar el APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # Misma versión que usa todo el equipo (ver docs/TECNOLOGIAS.md)
+          flutter-version: 3.47.6
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Pruebas (flutter test)
+        run: flutter test
+
+      - name: Compilar APK
+        run: flutter build apk --release
+
+      - name: Nombrar el APK con la versión
+        run: cp build/app/outputs/flutter-apk/app-release.apk "reservacancha-${GITHUB_REF_NAME//\//-}.apk"
+
+      # En PRs y con workflow_dispatch solo se guarda como artefacto descargable.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: reservacancha-*.apk
+
+      - name: Publicar en GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" reservacancha-*.apk
+          --title "ReservaCancha $GITHUB_REF_NAME"
+          --generate-notes

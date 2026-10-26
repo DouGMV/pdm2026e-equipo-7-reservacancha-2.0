@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:reservacancha/features/canchas/data/canchas_repository_fake.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
+
+import '../../../helpers/repositorios_en_memoria.dart';
 
 void main() {
   late CanchasRepositoryFake repositorio;
@@ -129,12 +132,34 @@ void main() {
   });
 
   test('canchasRepositoryProvider devuelve siempre la misma instancia', () {
-    final container = ProviderContainer();
+    final container = ProviderContainer(overrides: repositoriosEnMemoria());
     addTearDown(container.dispose);
 
     final primera = container.read(canchasRepositoryProvider);
     final segunda = container.read(canchasRepositoryProvider);
 
     expect(segunda, same(primera));
+  });
+
+  group('crear, actualizar y cambiarActiva', () {
+    test('en memoria', () async {
+      final repositorio = CanchasRepositoryFake(demora: Duration.zero);
+      final base = (await repositorio.obtenerCancha('cancha-1'))!;
+
+      final id = await repositorio.crear(base);
+      expect(id, isNot('cancha-1'));
+      expect(await repositorio.obtenerCancha(id), isNotNull);
+
+      await repositorio.cambiarActiva('cancha-1', activa: false);
+      expect((await repositorio.obtenerCancha('cancha-1'))!.activa, isFalse);
+
+      await repositorio.actualizar(base);
+      expect((await repositorio.obtenerCancha('cancha-1'))!.activa, isTrue);
+
+      expect(
+        () => repositorio.cambiarActiva('no-existe', activa: true),
+        throwsStateError,
+      );
+    });
   });
 }

@@ -2,11 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/app.dart';
+
+import 'package:reservacancha/features/auth/presentation/login_screen.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_screen.dart';
+
+import '../../../helpers/repositorios_en_memoria.dart';
 
 void main() {
   Future<void> abrirApp(WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: App()));
+    await tester.pumpWidget(
+      ProviderScope(overrides: repositoriosEnMemoria(), child: const App()),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> enviarCredenciales(
+    WidgetTester tester, {
+    required String correo,
+    required String contrasena,
+  }) async {
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Correo electrónico'),
+      correo,
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Contraseña'),
+      contrasena,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Iniciar sesión'));
+    await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();
   }
 
@@ -34,18 +58,28 @@ void main() {
   ) async {
     await abrirApp(tester);
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Correo electrónico'),
-      'ana@correo.com',
+    await enviarCredenciales(
+      tester,
+      correo: 'ana@correo.com',
+      contrasena: 'secreta1',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Contraseña'),
-      'secreta1',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Iniciar sesión'));
-    await tester.pump(const Duration(milliseconds: 900));
-    await tester.pumpAndSettle();
 
     expect(find.byType(CanchasScreen), findsOneWidget);
+  });
+
+  testWidgets('con credenciales incorrectas avisa y se queda en el login', (
+    tester,
+  ) async {
+    await abrirApp(tester);
+
+    await enviarCredenciales(
+      tester,
+      correo: 'ana@correo.com',
+      contrasena: 'equivocada',
+    );
+
+    expect(find.text('Correo o contraseña incorrectos'), findsOneWidget);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(CanchasScreen), findsNothing);
   });
 }

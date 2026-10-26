@@ -56,9 +56,9 @@ test/                           # Replica la estructura de lib/
 | Rol | Puede |
 |---|---|
 | `cliente` | Ver canchas, ver disponibilidad, reservar, ver y cancelar sus reservas, editar su perfil |
-| `admin` | Todo lo anterior + crear/editar/desactivar canchas y ver o cancelar cualquier reserva |
+| `admin` | Todo lo anterior + crear/editar/desactivar canchas, ver o cancelar cualquier reserva, y **eliminar** canchas y reservas (con Deshacer) |
 
-El rol se guarda en el documento del usuario en Firestore. Todo usuario se registra como `cliente`; el administrador se asigna manualmente desde Firebase Console.
+El rol se guarda en el documento del usuario en Firestore. Todo usuario se registra como `cliente`; el administrador se asigna manualmente desde Firebase Console. El cliente nunca elimina reservas: las cancela (ver `firestore.rules`).
 
 ## Pantallas del MVP
 
@@ -66,13 +66,27 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 |---|---|---|
 | `/login` | Inicio de sesión | Público |
 | `/registro` | Registro | Público |
-| `/` | Listado de canchas (filtro por deporte) | Cliente |
+| `/` | Pantalla principal con barra inferior (ver pestañas abajo) | Cliente |
 | `/cancha/:id` | Detalle de cancha y selección de fecha/horario | Cliente |
 | `/reserva/confirmar` | Resumen y confirmación | Cliente |
-| `/mis-reservas` | Reservas próximas e historial, con opción de cancelar | Cliente |
-| `/perfil` | Datos del usuario y cerrar sesión | Cliente |
-| `/admin/canchas` | Gestión de canchas | Admin |
-| `/admin/reservas` | Reservas por cancha y fecha | Admin |
+| `/admin/canchas` | Gestión de canchas: filtro por deporte y eliminar con Deshacer | Admin |
+| `/admin/reservas` | Reservas: filtro por estado y eliminar con Deshacer | Admin |
+
+### Pestañas de la pantalla principal (`/`)
+
+| Pestaña | Pantalla | Rol |
+|---|---|---|
+| Canchas | Listado de canchas (filtro por deporte) | Cliente |
+| Mis reservas | Reservas próximas e historial, con opción de cancelar | Cliente |
+| Admin | Accesos a `/admin/canchas` y `/admin/reservas` | Admin (hoy visible para todos; se oculta con la redirección por rol, #7) |
+| Perfil | Datos del usuario y cerrar sesión ("Próximamente" hasta el Sprint 3) | Cliente |
+
+## Navegación
+
+- **go_router** (`core/router/app_router.dart`) maneja las rutas y, cuando exista la sesión, las redirecciones por sesión y por rol.
+- La **pestaña activa** vive en `navegacionProvider` (`core/router/navegacion_provider.dart`), y `InicioShell` muestra las pestañas en un `IndexedStack`: cada pestaña conserva su scroll y sus filtros al cambiar de pestaña.
+- Para ir a otra pestaña desde una pantalla se cambia el provider (`ref.read(navegacionProvider.notifier).ir(Pestana.canchas)`), sin pasar funciones por constructores.
+- Como las pestañas siguen vivas, una acción que cambia datos de otra pestaña debe invalidar su provider (por ejemplo, eliminar desde Admin invalida `misReservasProvider`).
 
 ## Modelo de datos (Cloud Firestore)
 

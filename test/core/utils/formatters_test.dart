@@ -35,4 +35,25 @@ void main() {
       expect(formatearHora(7), '07:00');
     });
   });
+
+  group('fechas y horas para leer', () {
+    test('formatearFechaLarga usa el día y el mes en español', () {
+      expect(
+        formatearFechaLarga(DateTime(2026, 10, 26)),
+        'lunes 26 de octubre',
+      );
+      expect(
+        formatearFechaLarga(DateTime(2026, 11, 1)),
+        'domingo 1 de noviembre',
+      );
+    });
+
+    test('abreviarDia usa tres letras', () {
+      expect(abreviarDia(DateTime(2026, 10, 28)), 'mié');
+    });
+
+    test('formatearBloque muestra inicio y fin', () {
+      expect(formatearBloque(7), '07:00 – 08:00');
+    });
+  });
 }
