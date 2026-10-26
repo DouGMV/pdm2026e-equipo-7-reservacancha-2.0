@@ -6,6 +6,9 @@ import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/router/inicio_shell.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
+import 'package:reservacancha/features/auth/data/auth_repository_fake.dart';
+import 'package:reservacancha/features/auth/data/auth_repository_provider.dart';
+import 'package:reservacancha/features/auth/domain/usuario.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
@@ -39,7 +42,31 @@ class _ReservasFalsas extends Fake implements ReservasRepository {
   Future<List<Reserva>> obtenerMisReservas() async => const [];
 }
 
-Future<void> _mostrarApp(WidgetTester tester) {
+const _admin = Usuario(
+  uid: 'uid-admin',
+  nombre: 'Administrador',
+  email: 'admin@correo.com',
+  telefono: '55550000',
+  rol: RolUsuario.admin,
+);
+
+const _cliente = Usuario(
+  uid: 'uid-ana',
+  nombre: 'Ana López',
+  email: 'ana@correo.com',
+  telefono: '55551234',
+  rol: RolUsuario.cliente,
+);
+
+/// Monta el shell con la sesión de [usuario] (por defecto, un admin para que
+/// estén las cuatro pestañas).
+Future<void> _mostrarApp(WidgetTester tester, {Usuario usuario = _admin}) {
+  final auth = AuthRepositoryFake(
+    demora: Duration.zero,
+    sesionInicial: usuario,
+  );
+  addTearDown(auth.dispose);
+
   final router = GoRouter(
     routes: [
       GoRoute(
@@ -61,6 +88,7 @@ Future<void> _mostrarApp(WidgetTester tester) {
   return tester.pumpWidget(
     ProviderScope(
       overrides: [
+        authRepositoryProvider.overrideWithValue(auth),
         canchasRepositoryProvider.overrideWithValue(_CanchasFalsas()),
         reservasRepositoryProvider.overrideWithValue(_ReservasFalsas()),
       ],
@@ -98,7 +126,10 @@ void main() {
 
     await _tocarPestana(tester, 'Perfil');
     expect(_titulo('Perfil'), findsOneWidget);
-    expect(find.text('Próximamente'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Cerrar sesión'),
+      findsOneWidget,
+    );
 
     await _tocarPestana(tester, 'Canchas');
     expect(_titulo('Canchas'), findsOneWidget);
@@ -113,9 +144,13 @@ void main() {
     await _mostrarApp(tester);
     await tester.pumpAndSettle();
 
+    // La lista vertical; los chips de filtro tienen su propio scroll horizontal.
     final listaCanchas = find.descendant(
       of: find.byType(CanchasScreen),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     await tester.drag(listaCanchas, const Offset(0, -300));
     await tester.pumpAndSettle();
@@ -161,5 +196,23 @@ void main() {
     await tester.tap(find.text('Reservas'));
     await tester.pumpAndSettle();
     expect(find.byType(AdminReservasScreen), findsOneWidget);
+  });
+
+  testWidgets('un cliente no ve la pestaña Admin', (tester) async {
+    await _mostrarApp(tester, usuario: _cliente);
+    await tester.pumpAndSettle();
+
+    final barra = find.byType(NavigationBar);
+    expect(
+      find.descendant(of: barra, matching: find.text('Admin')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: barra, matching: find.byType(NavigationDestination)),
+      findsNWidgets(3),
+    );
+
+    await _tocarPestana(tester, 'Perfil');
+    expect(_titulo('Perfil'), findsOneWidget);
   });
 }

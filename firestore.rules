@@ -30,9 +30,11 @@ service cloud.firestore {
       // Lectura necesaria para calcular disponibilidad
       allow read: if isSignedIn();
 
-      allow create: if isSignedIn()
+      // El cliente reserva para sí mismo; el admin puede restaurar
+      // ("Deshacer") una reserva de cualquier usuario que acaba de borrar.
+      allow create: if isAdmin() || (isSignedIn()
                     && request.resource.data.usuarioId == request.auth.uid
-                    && request.resource.data.estado == 'confirmada';
+                    && request.resource.data.estado == 'confirmada');
 
       allow update: if isSignedIn() && (
         // Volver a reservar un horario que había sido cancelado

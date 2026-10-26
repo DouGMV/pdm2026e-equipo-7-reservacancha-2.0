@@ -1,35 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:reservacancha/core/errors/auth_exception.dart';
 import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/utils/validators.dart';
+import 'package:reservacancha/features/auth/presentation/auth_providers.dart';
 
-/// Pantalla de registro (issue #17).
-/// UI con datos de ejemplo: la validación y el envío se conectarán
-/// al provider de auth de Angel en el Sprint 1.
-class RegistroScreen extends StatefulWidget {
+/// Pantalla de registro (UI: issue #17; lógica: issue #7).
+/// No navega al terminar: al crear la cuenta queda la sesión iniciada y el
+/// `redirect` del router manda al usuario a `/`.
+class RegistroScreen extends ConsumerStatefulWidget {
   const RegistroScreen({super.key});
 
   @override
-  State<RegistroScreen> createState() => _RegistroScreenState();
+  ConsumerState<RegistroScreen> createState() => _RegistroScreenState();
 }
 
-class _RegistroScreenState extends State<RegistroScreen> {
+class _RegistroScreenState extends ConsumerState<RegistroScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _enviando = false;
+  final _nombre = TextEditingController();
+  final _correo = TextEditingController();
+  final _telefono = TextEditingController();
+  final _contrasena = TextEditingController();
+
+  @override
+  void dispose() {
+    _nombre.dispose();
+    _correo.dispose();
+    _telefono.dispose();
+    _contrasena.dispose();
+    super.dispose();
+  }
 
   Future<void> _registrarse() async {
     final formValido = _formKey.currentState?.validate() ?? false;
-    if (!formValido || _enviando) return;
-    setState(() => _enviando = true);
-    // TODO(sprint-1): reemplazar por el provider de autenticación de Angel.
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    if (!formValido || ref.read(authControllerProvider).isLoading) return;
+
+    await ref
+        .read(authControllerProvider.notifier)
+        .registrar(
+          nombre: _nombre.text,
+          email: _correo.text,
+          telefono: _telefono.text,
+          contrasena: _contrasena.text,
+        );
     if (!mounted) return;
-    context.go(AppRoutes.canchas);
+
+    final estado = ref.read(authControllerProvider);
+    if (estado.hasError) {
+      final mensaje = switch (estado.error) {
+        AuthException(:final mensaje) => mensaje,
+        _ => 'No se pudo crear la cuenta. Intenta de nuevo.',
+      };
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(mensaje)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final enviando = ref.watch(authControllerProvider).isLoading;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Registro')),
       body: Center(
@@ -42,6 +74,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
+                  controller: _nombre,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     labelText: 'Nombre completo',
@@ -52,6 +85,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _correo,
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
                   decoration: const InputDecoration(
@@ -62,6 +96,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _telefono,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
                     labelText: 'Teléfono',
@@ -71,6 +106,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _contrasena,
                   obscureText: true,
                   autofillHints: const [AutofillHints.newPassword],
                   decoration: const InputDecoration(
@@ -81,8 +117,8 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
-                  onPressed: _enviando ? null : _registrarse,
-                  child: _enviando
+                  onPressed: enviando ? null : _registrarse,
+                  child: enviando
                       ? const SizedBox(
                           height: 20,
                           width: 20,

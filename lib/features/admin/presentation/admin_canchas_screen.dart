@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
 import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
@@ -19,6 +21,11 @@ class AdminCanchasScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Gestión de canchas')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(AppRoutes.nuevaCancha),
+        icon: const Icon(Icons.add),
+        label: const Text('Agregar'),
+      ),
       body: Column(
         children: [
           FiltroDeporteChips(
@@ -41,9 +48,14 @@ class AdminCanchasScreen extends ConsumerWidget {
                 return deporte == null
                     ? MensajeConAccion(
                         icono: Icons.sports_soccer,
-                        mensaje: 'Aún no hay canchas registradas.',
-                        accion: 'Actualizar',
-                        alPresionar: () => ref.invalidate(adminCanchasProvider),
+                        mensaje:
+                            'Aún no hay canchas registradas. Agrega una o '
+                            'carga las de ejemplo para probar la app.',
+                        accion: 'Cargar canchas de ejemplo',
+                        alPresionar: () => _cargarEjemplos(
+                          context,
+                          ref.read(adminCanchasProvider.notifier),
+                        ),
                       )
                     : MensajeConAccion(
                         icono: Icons.filter_alt_off,
@@ -61,6 +73,25 @@ class AdminCanchasScreen extends ConsumerWidget {
   }
 }
 
+Future<void> _cargarEjemplos(
+  BuildContext context,
+  AdminCanchasNotifier notifier,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    await notifier.cargarEjemplos();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Canchas de ejemplo cargadas')),
+    );
+  } catch (_) {
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('No pudimos cargar las canchas de ejemplo.'),
+      ),
+    );
+  }
+}
+
 class _ListaCanchas extends ConsumerWidget {
   const _ListaCanchas({required this.canchas});
 
@@ -72,6 +103,8 @@ class _ListaCanchas extends ConsumerWidget {
     final colores = Theme.of(context).colorScheme;
 
     return ListView.separated(
+      // Espacio para que el botón Agregar no tape la última fila.
+      padding: const EdgeInsets.only(bottom: 88),
       itemCount: canchas.length,
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
@@ -121,12 +154,37 @@ class _ListaCanchas extends ConsumerWidget {
           },
           child: ListTile(
             title: Text(cancha.nombre),
-            subtitle: Text(nombreDeporte(cancha.deporte)),
-            trailing: Text('${formatearMoneda(cancha.precioPorHora)}/h'),
+            subtitle: Text(
+              cancha.activa
+                  ? '${nombreDeporte(cancha.deporte)} · '
+                        '${formatearMoneda(cancha.precioPorHora)}/h'
+                  : '${nombreDeporte(cancha.deporte)} · Inactiva',
+            ),
+            trailing: Switch(
+              value: cancha.activa,
+              onChanged: (activa) =>
+                  _cambiarActiva(notifier, messenger, cancha, activa),
+            ),
+            onTap: () => context.push(AppRoutes.editarDe(cancha.id)),
           ),
         );
       },
     );
+  }
+
+  Future<void> _cambiarActiva(
+    AdminCanchasNotifier notifier,
+    ScaffoldMessengerState messenger,
+    Cancha cancha,
+    bool activa,
+  ) async {
+    try {
+      await notifier.cambiarActiva(cancha, activa: activa);
+    } catch (_) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('No pudimos actualizar «${cancha.nombre}».')),
+      );
+    }
   }
 
   Future<void> _restaurar(

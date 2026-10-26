@@ -1,11 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:reservacancha/features/reservas/data/reservas_repository_fake.dart';
+import 'package:reservacancha/features/reservas/data/reservas_repository_firestore.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
 
-/// Repositorio de reservas que usa la app. Por ahora es una lista en memoria
-/// (una sola instancia: lo eliminado sigue eliminado mientras la app esté
-/// abierta); se reemplazará por la implementación con Firestore.
+/// Repositorio de reservas que usa la app: Cloud Firestore.
+/// En las pruebas se reemplaza por `ReservasRepositoryFake` con un override.
 final reservasRepositoryProvider = Provider<ReservasRepository>(
-  (ref) => ReservasRepositoryFake(),
+  (ref) => ReservasRepositoryFirestore(
+    FirebaseFirestore.instance,
+    usuarioActual: () => FirebaseAuth.instance.currentUser?.uid,
+  ),
 );

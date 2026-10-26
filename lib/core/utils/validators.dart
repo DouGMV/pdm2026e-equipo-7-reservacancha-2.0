@@ -39,3 +39,12 @@ String? validarTelefono(String? valor) {
       ? null
       : 'Introduce un teléfono válido (8 dígitos)';
 }
+
+/// Precio por hora obligatorio, mayor que cero (acepta decimales con punto).
+String? validarPrecio(String? valor) {
+  final texto = valor?.trim() ?? '';
+  if (texto.isEmpty) return 'Introduce el precio por hora';
+  final precio = num.tryParse(texto);
+  if (precio == null || precio <= 0) return 'Introduce un precio mayor que 0';
+  return null;
+}

@@ -1,3 +1,4 @@
+import 'package:reservacancha/core/errors/reserva_no_disponible_exception.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
 
@@ -11,15 +12,20 @@ class ReservasRepositoryFake implements ReservasRepository {
   ReservasRepositoryFake({
     this.demora = const Duration(seconds: 1),
     List<Reserva> reservas = reservasDeEjemplo,
-  }) : _reservas = [...reservas];
+    String Function()? usuarioActual,
+  }) : _reservas = [...reservas],
+       _usuarioActual = usuarioActual ?? (() => usuarioDemo);
 
   final Duration demora;
   final List<Reserva> _reservas;
 
+  /// uid del usuario con sesión; por defecto, [usuarioDemo].
+  final String Function() _usuarioActual;
+
   @override
   Future<List<Reserva>> obtenerMisReservas() async {
     await Future<void>.delayed(demora);
-    return _ordenadas(_reservas.where((r) => r.usuarioId == usuarioDemo));
+    return _ordenadas(_reservas.where((r) => r.usuarioId == _usuarioActual()));
   }
 
   @override
@@ -27,6 +33,55 @@ class ReservasRepositoryFake implements ReservasRepository {
     await Future<void>.delayed(demora);
     return _ordenadas(
       _reservas.where((r) => estado == null || r.estado == estado),
+    );
+  }
+
+  @override
+  Future<Set<int>> obtenerHorasOcupadas({
+    required String canchaId,
+    required String fecha,
+  }) async {
+    await Future<void>.delayed(demora);
+    return {
+      for (final r in _reservas)
+        if (r.canchaId == canchaId &&
+            r.fecha == fecha &&
+            r.estado == EstadoReserva.confirmada)
+          r.hora,
+    };
+  }
+
+  @override
+  Future<void> crearReserva(Reserva reserva) async {
+    await Future<void>.delayed(demora);
+    final indice = _reservas.indexWhere((r) => r.id == reserva.id);
+    if (indice != -1 && _reservas[indice].estado == EstadoReserva.confirmada) {
+      throw const ReservaNoDisponibleException();
+    }
+    if (indice != -1) _reservas.removeAt(indice);
+    _reservas.add(reserva);
+  }
+
+  @override
+  Future<void> cancelar(String id) async {
+    await Future<void>.delayed(demora);
+    final index = _reservas.indexWhere((r) => r.id == id);
+    if (index == -1) {
+      throw Exception('No se encontró la reserva');
+    }
+    final reserva = _reservas[index];
+    if (reserva.estado != EstadoReserva.confirmada) {
+      throw Exception('Solo se pueden cancelar reservas confirmadas');
+    }
+    _reservas[index] = Reserva(
+      id: reserva.id,
+      canchaId: reserva.canchaId,
+      canchaNombre: reserva.canchaNombre,
+      usuarioId: reserva.usuarioId,
+      fecha: reserva.fecha,
+      hora: reserva.hora,
+      estado: EstadoReserva.cancelada,
+      total: reserva.total,
     );
   }
 
@@ -65,7 +120,7 @@ const List<Reserva> reservasDeEjemplo = [
     total: 150,
   ),
   Reserva(
-    id: 'cancha-5_20261022_7',
+    id: 'cancha-5_20261022_07',
     canchaId: 'cancha-5',
     canchaNombre: 'Pádel Club Mesoamericana',
     usuarioId: usuarioDemo,
