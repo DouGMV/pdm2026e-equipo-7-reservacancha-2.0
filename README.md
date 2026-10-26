@@ -53,3 +53,12 @@ flutter test
 ## Versiones
 
 Se usa versionado semántico. Cada sprint cerrado genera un tag (`v2.0.0-alpha.1`, `v2.0.0-alpha.2`, …) y la entrega final es `v2.0.0`. Las APK se publican en **Releases**.
+
+Para publicar una versión, desde `main` actualizado:
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+El workflow `.github/workflows/release.yml` compila el APK en GitHub Actions y lo adjunta al Release; no hace falta el Android SDK en la computadora. El APK se firma con la llave de depuración de Flutter: sirve para instalarlo en un teléfono (activando "orígenes desconocidos"), pero no para publicarlo en Google Play.
