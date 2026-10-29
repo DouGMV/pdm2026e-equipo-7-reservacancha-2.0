@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/app.dart';
+import 'package:reservacancha/core/errors/cancha_duplicada_exception.dart';
 import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/auth/data/auth_repository_fake.dart';
@@ -11,6 +12,7 @@ import 'package:reservacancha/features/auth/data/auth_repository_provider.dart';
 import 'package:reservacancha/features/auth/domain/usuario.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_fake.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
+import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/presentation/canchas_providers.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_fake.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
@@ -74,7 +76,7 @@ void main() {
   testWidgets('agregar valida los campos obligatorios', (tester) async {
     await abrir(tester, AppRoutes.nuevaCancha);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Agregar cancha'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Crear'));
     await tester.pumpAndSettle();
 
     expect(find.text('Introduce el nombre'), findsOneWidget);
@@ -97,11 +99,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(campo('Ubicación'), 'Zona 10');
     await tester.enterText(campo('Precio por hora'), '180');
-    await tester.tap(find.widgetWithText(FilledButton, 'Agregar cancha'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Crear'));
     await tester.pumpAndSettle();
 
     expect(find.byType(AdminCanchasScreen), findsOneWidget);
-    expect(find.text('«Cancha Nueva» agregada'), findsOneWidget);
+    expect(find.text('«Cancha Nueva» creada'), findsOneWidget);
+    // Aparece en la lista sin recargar a mano: el provider se invalidó.
+    expect(find.text('Cancha Nueva'), findsOneWidget);
     expect(await nombresEnRepositorio(tester), contains('Cancha Nueva'));
   });
 
@@ -153,4 +157,89 @@ void main() {
     expect(find.text('Canchas de ejemplo cargadas'), findsOneWidget);
     expect(find.text('Cancha Sintética 1'), findsOneWidget);
   });
+
+  testWidgets('tocar una cancha abre el formulario lleno y Guardar cambios la '
+      'actualiza con el mismo id', (tester) async {
+    await abrir(tester, AppRoutes.adminCanchas);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Polideportivo Los Altos'));
+    await tester.pumpAndSettle();
+
+    // El formulario abre lleno con los datos de la cancha.
+    expect(find.text('Editar cancha'), findsOneWidget);
+    expect(campo('Polideportivo Los Altos'), findsOneWidget);
+    expect(campo('Zona 1, Quetzaltenango'), findsOneWidget);
+    expect(campo('120'), findsOneWidget);
+
+    await tester.enterText(campo('Polideportivo Los Altos'), 'Polideportivo');
+    await tester.enterText(campo('120'), '135');
+    await tester.tap(find.widgetWithText(FilledButton, 'Guardar cambios'));
+    await tester.pumpAndSettle();
+
+    // De vuelta en la lista, con el dato nuevo y sin recargar a mano.
+    expect(find.byType(AdminCanchasScreen), findsOneWidget);
+    expect(find.text('Polideportivo'), findsOneWidget);
+    expect(find.text('Polideportivo Los Altos'), findsNothing);
+
+    // Es el mismo documento: el id no cambió.
+    final editada = await tester.runAsync(
+      () => canchas.obtenerCancha('cancha-3'),
+    );
+    expect(editada!.nombre, 'Polideportivo');
+    expect(editada.precioPorHora, 135);
+    final todas = await tester.runAsync(canchas.obtenerCanchas);
+    expect(todas!.where((c) => c.nombre == 'Polideportivo'), hasLength(1));
+  });
+
+  testWidgets('crear con un nombre repetido muestra un mensaje humano', (
+    tester,
+  ) async {
+    canchas = _CanchasConNombreUnico();
+    await abrir(tester, AppRoutes.nuevaCancha);
+
+    await tester.enterText(campo('Nombre'), '  cancha SINTETICA 1 ');
+    await tester.tap(
+      find.widgetWithText(DropdownButtonFormField<String>, 'Deporte'),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fútbol').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(campo('Ubicación'), 'Zona 3');
+    await tester.enterText(campo('Precio por hora'), '150');
+    await tester.tap(find.widgetWithText(FilledButton, 'Crear'));
+    await tester.pumpAndSettle();
+
+    // Sigue en el formulario, con el mensaje bajo el nombre.
+    expect(find.text('Nueva cancha'), findsOneWidget);
+    expect(find.text('Ya existe una cancha con ese nombre'), findsOneWidget);
+    final todas = await tester.runAsync(canchas.obtenerCanchas);
+    expect(todas, hasLength(5));
+  });
+}
+
+/// Hasta que el repositorio tenga la regla del nombre único (#64), esta
+/// prueba la simula comparando sin mayúsculas, espacios ni tildes.
+class _CanchasConNombreUnico extends CanchasRepositoryFake {
+  _CanchasConNombreUnico() : super(demora: Duration.zero);
+
+  static String _normalizar(String nombre) => nombre
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .replaceAll('á', 'a')
+      .replaceAll('é', 'e')
+      .replaceAll('í', 'i')
+      .replaceAll('ó', 'o')
+      .replaceAll('ú', 'u');
+
+  @override
+  Future<String> crear(Cancha cancha) async {
+    final existentes = await obtenerCanchas();
+    if (existentes.any(
+      (c) => _normalizar(c.nombre) == _normalizar(cancha.nombre),
+    )) {
+      throw const CanchaDuplicadaException();
+    }
+    return super.crear(cancha);
+  }
 }

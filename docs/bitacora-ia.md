@@ -15,6 +15,29 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-29 · @Lilfacce — Laboratorio S16: cierre del CRUD y pruebas de providers (#61, #65)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Terminar `feat/61-crud-canchas` para que quede lista: revisar y probar lo de Nathaly (#64), completar lo que faltara del #65 y abrir el PR."
+- **Resultado:** revisión de las reglas del repositorio (nombre único y borrado con reservas, en Firestore y en memoria); 5 pruebas de providers con `ProviderContainer`.
+- **Aceptado:** lo de los providers ya existía (el controlador deja el error en el estado, `eliminar` no toca la lista si falla y todo refresca invalidando); faltaba demostrarlo con pruebas: duplicado → error en el estado; crear y editar → la lista se vuelve a consultar y conserva el id; borrar en uso → error y la lista no cambia; desactivar → pasa a archivadas y sale del cliente.
+- **Rechazado / corregido:** al simplificar el mensaje de cancha en uso quedaba "Tiene 1 reservas"; se volvió a usar el singular y se ajustó la prueba.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 198 pruebas en verde.
+- **Commit / PR:** #61 (incluye #63, #64 y #65).
+
+## 2026-10-29 · @Lilfacce — Laboratorio S16: formulario único de cancha, lista y mensajes (#63)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del #61 (issue #63) en `feat/61-crud-canchas`: un `CanchaForm` que cree y edite sin conocer providers, la lista con Activas y Archivadas, el mensaje de cancha en uso con Desactivar, el de nombre repetido y las pruebas de widget del laboratorio."
+- **Resultado:** `CanchaForm` (recibe `inicial` y `alGuardar`), `CanchaFormScreen` que lo conecta con el controlador, la lista por secciones, la regla al deslizar y 9 pruebas nuevas o ajustadas.
+- **Aceptado:** el formulario captura `CanchaDuplicadaException` y muestra el mensaje bajo el campo Nombre; la pantalla vuelve a lanzar el error del controlador para que el formulario lo muestre; editar arma la cancha con `inicial.id`.
+- **Rechazado / corregido:**
+  - Al sacar el formulario, nadie hacía `watch` de `canchaFormControllerProvider` (es `autoDispose`) y el estado se perdía entre el `guardar` y la lectura del error. La pantalla ahora lo mantiene vivo con un `ref.watch`.
+  - Se crearon `CanchaDuplicadaException` y `CanchaEnUsoException` con el contrato del #64 para poder mostrar los mensajes; Nathaly agrega las reglas en el repositorio. Mientras tanto, la prueba de nombre repetido usa un repositorio de prueba que simula la regla.
+  - El botón pasa de "Agregar cancha" a **Crear** y el de la lista a **Nueva**, como en el laboratorio; se ajustaron las pruebas.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 169 pruebas en verde.
+- **Commit / PR:** issue #63 (parte del #61).
+
 ## 2026-10-25 · @Lilfacce — Pantalla de Perfil y cerrar sesión (#44)
 
 - **Herramienta:** Claude Code.
