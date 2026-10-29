@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:reservacancha/core/errors/cancha_en_uso_exception.dart';
 import 'package:reservacancha/core/router/app_router.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
 import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
@@ -24,7 +25,7 @@ class AdminCanchasScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.nuevaCancha),
         icon: const Icon(Icons.add),
-        label: const Text('Agregar'),
+        label: const Text('Nueva'),
       ),
       body: Column(
         children: [
@@ -92,83 +93,147 @@ Future<void> _cargarEjemplos(
   }
 }
 
-class _ListaCanchas extends ConsumerWidget {
+/// Las canchas activas arriba y las archivadas (desactivadas) abajo.
+class _ListaCanchas extends StatelessWidget {
   const _ListaCanchas({required this.canchas});
 
   final List<Cancha> canchas;
 
   @override
+  Widget build(BuildContext context) {
+    final activas = [
+      for (final c in canchas)
+        if (c.activa) c,
+    ];
+    final archivadas = [
+      for (final c in canchas)
+        if (!c.activa) c,
+    ];
+
+    return ListView(
+      // Espacio para que el botón Nueva no tape la última fila.
+      padding: const EdgeInsets.only(bottom: 88),
+      children: [
+        if (activas.isNotEmpty) ...[
+          _Encabezado('Activas (${activas.length})'),
+          for (final cancha in activas) _FilaCancha(cancha: cancha),
+        ],
+        if (archivadas.isNotEmpty) ...[
+          _Encabezado('Archivadas (${archivadas.length})'),
+          for (final cancha in archivadas) _FilaCancha(cancha: cancha),
+        ],
+      ],
+    );
+  }
+}
+
+class _Encabezado extends StatelessWidget {
+  const _Encabezado(this.texto);
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        texto,
+        style: tema.textTheme.titleSmall?.copyWith(
+          color: tema.colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _FilaCancha extends ConsumerWidget {
+  const _FilaCancha({required this.cancha});
+
+  final Cancha cancha;
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(adminCanchasProvider.notifier);
     final colores = Theme.of(context).colorScheme;
+    final messenger = ScaffoldMessenger.of(context);
 
-    return ListView.separated(
-      // Espacio para que el botón Agregar no tape la última fila.
-      padding: const EdgeInsets.only(bottom: 88),
-      itemCount: canchas.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final cancha = canchas[index];
-        final messenger = ScaffoldMessenger.of(context);
-        return Dismissible(
-          // El id y no el índice: al quitar una fila, las demás conservan su
-          // key y Flutter no confunde una cancha con otra.
-          key: ValueKey(cancha.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: colores.error,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Icon(Icons.delete, color: colores.onError),
-          ),
-          // Primero se borra en el repositorio; si falla, la fila vuelve.
-          confirmDismiss: (_) async {
-            try {
-              await notifier.eliminar(cancha);
-              return true;
-            } catch (_) {
-              messenger
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text('No pudimos eliminar «${cancha.nombre}».'),
-                  ),
-                );
-              return false;
-            }
-          },
-          onDismissed: (_) {
-            notifier.quitarDeLaLista(cancha);
-            messenger
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                SnackBar(
-                  content: Text('«${cancha.nombre}» eliminada'),
-                  persist: false,
-                  action: SnackBarAction(
-                    label: 'Deshacer',
-                    onPressed: () => _restaurar(notifier, messenger, cancha),
-                  ),
-                ),
-              );
-          },
-          child: ListTile(
-            title: Text(cancha.nombre),
-            subtitle: Text(
-              cancha.activa
-                  ? '${nombreDeporte(cancha.deporte)} · '
-                        '${formatearMoneda(cancha.precioPorHora)}/h'
-                  : '${nombreDeporte(cancha.deporte)} · Inactiva',
-            ),
-            trailing: Switch(
-              value: cancha.activa,
-              onChanged: (activa) =>
-                  _cambiarActiva(notifier, messenger, cancha, activa),
-            ),
-            onTap: () => context.push(AppRoutes.editarDe(cancha.id)),
-          ),
-        );
+    return Dismissible(
+      // El id y no el índice: al quitar una fila, las demás conservan su
+      // key y Flutter no confunde una cancha con otra.
+      key: ValueKey(cancha.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: colores.error,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Icon(Icons.delete, color: colores.onError),
+      ),
+      // Primero se borra en el repositorio; si falla, la fila vuelve.
+      confirmDismiss: (_) async {
+        try {
+          await notifier.eliminar(cancha);
+          return true;
+        } on CanchaEnUsoException catch (error) {
+          // Regla de borrado: con reservas no se borra; se ofrece
+          // archivarla (desactivarla) en su lugar.
+          messenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(error.mensaje),
+                persist: false,
+                action: cancha.activa
+                    ? SnackBarAction(
+                        label: 'Desactivar',
+                        onPressed: () =>
+                            _cambiarActiva(notifier, messenger, cancha, false),
+                      )
+                    : null,
+              ),
+            );
+          return false;
+        } catch (_) {
+          messenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text('No pudimos eliminar «${cancha.nombre}».'),
+              ),
+            );
+          return false;
+        }
       },
+      onDismissed: (_) {
+        notifier.quitarDeLaLista(cancha);
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('«${cancha.nombre}» eliminada'),
+              persist: false,
+              action: SnackBarAction(
+                label: 'Deshacer',
+                onPressed: () => _restaurar(notifier, messenger, cancha),
+              ),
+            ),
+          );
+      },
+      child: ListTile(
+        title: Text(cancha.nombre),
+        subtitle: Text(
+          cancha.activa
+              ? '${nombreDeporte(cancha.deporte)} · '
+                    '${formatearMoneda(cancha.precioPorHora)}/h'
+              : '${nombreDeporte(cancha.deporte)} · Inactiva',
+        ),
+        trailing: Switch(
+          value: cancha.activa,
+          onChanged: (activa) =>
+              _cambiarActiva(notifier, messenger, cancha, activa),
+        ),
+        onTap: () => context.push(AppRoutes.editarDe(cancha.id)),
+      ),
     );
   }
 
