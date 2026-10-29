@@ -13,6 +13,9 @@ final filtroCanchasProvider =
 
 /// Canchas de la pantalla de administración. Hace `watch` del filtro, así que
 /// al cambiarlo la consulta se repite sola.
+///
+/// Regla del Lab S16: después de crear, editar, desactivar o restaurar, la
+/// lista se refresca **invalidando** los providers, nunca agregando a mano.
 class AdminCanchasNotifier extends AsyncNotifier<List<Cancha>> {
   @override
   Future<List<Cancha>> build() {
@@ -22,15 +25,22 @@ class AdminCanchasNotifier extends AsyncNotifier<List<Cancha>> {
         .obtenerCanchas(deporte: filtro.deporte);
   }
 
-  /// Borra primero en el repositorio. Si falla, la excepción llega a la
-  /// pantalla y la lista no cambia.
+  /// Borra primero en el repositorio. Si la cancha está en uso, el
+  /// repositorio lanza `CanchaEnUsoException`: el error llega tal cual a la
+  /// pantalla (que muestra su `mensaje` y ofrece Desactivar) y la lista no
+  /// cambia.
   Future<void> eliminar(Cancha cancha) async {
     await ref.read(canchasRepositoryProvider).eliminar(cancha.id);
+    if (!ref.mounted) return;
+    ref.invalidate(canchaProvider(cancha.id));
     _actualizarListadoCliente();
   }
 
-  /// Quita la cancha de la lista sin volver a consultar. El `Dismissible`
-  /// necesita que la fila salga del árbol en cuanto termina de deslizarse.
+  /// Saca de la lista la fila que el usuario acaba de deslizar, ya borrada en
+  /// el repositorio. Es la única excepción a "refrescar invalidando": el
+  /// `Dismissible` exige que la fila salga del árbol en ese mismo frame, y
+  /// una invalidación mostraría la carga y nunca el SnackBar de Deshacer. No
+  /// agrega ni cambia datos: solo quita lo que la base ya no tiene.
   void quitarDeLaLista(Cancha cancha) {
     final canchas = state.value;
     if (canchas == null) return;
@@ -43,10 +53,14 @@ class AdminCanchasNotifier extends AsyncNotifier<List<Cancha>> {
   Future<void> restaurar(Cancha cancha) async {
     await ref.read(canchasRepositoryProvider).restaurar(cancha);
     if (!ref.mounted) return;
-    ref.invalidateSelf();
+    ref
+      ..invalidateSelf()
+      ..invalidate(canchaProvider(cancha.id));
     _actualizarListadoCliente();
   }
 
+  /// Desactivar es "archivar": la cancha deja de verse en el listado del
+  /// cliente y pasa a Archivadas, sin perder sus reservas.
   Future<void> cambiarActiva(Cancha cancha, {required bool activa}) async {
     await ref
         .read(canchasRepositoryProvider)
@@ -83,6 +97,29 @@ final adminCanchasProvider =
       retry: (_, _) => null,
     );
 
+/// Canchas de administración separadas para la pantalla: las activas arriba
+/// y las desactivadas en "Archivadas".
+typedef CanchasAgrupadas = ({List<Cancha> activas, List<Cancha> archivadas});
+
+/// Deriva de [adminCanchasProvider]: cuando la lista se invalida, esto se
+/// recalcula solo. Conserva la carga y el error de la lista original.
+final canchasAgrupadasProvider = Provider<AsyncValue<CanchasAgrupadas>>(
+  (ref) => ref
+      .watch(adminCanchasProvider)
+      .whenData(
+        (canchas) => (
+          activas: [
+            for (final cancha in canchas)
+              if (cancha.activa) cancha,
+          ],
+          archivadas: [
+            for (final cancha in canchas)
+              if (!cancha.activa) cancha,
+          ],
+        ),
+      ),
+);
+
 /// Guarda el formulario de una cancha. Su estado indica si hay una operación
 /// en curso (`isLoading`) o si falló (`hasError`).
 final canchaFormControllerProvider =
@@ -94,7 +131,11 @@ class CanchaFormController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  /// Crea la cancha si [nueva]; si no, la actualiza.
+  /// Crea la cancha si [nueva]; si no, la actualiza (el id no cambia).
+  ///
+  /// Si el nombre ya existe, el repositorio lanza `CanchaDuplicadaException`:
+  /// el error queda en el estado para que el formulario muestre su `mensaje`
+  /// y no se cierre, y no se refresca nada porque nada cambió.
   Future<void> guardar(Cancha cancha, {required bool nueva}) async {
     state = const AsyncLoading();
     final resultado = await AsyncValue.guard<void>(() async {
@@ -106,10 +147,13 @@ class CanchaFormController extends AsyncNotifier<void> {
       }
     });
     if (!ref.mounted) return;
-    ref
-      ..invalidate(adminCanchasProvider)
-      ..invalidate(canchasProvider)
-      ..invalidate(canchaProvider(cancha.id));
+    if (!resultado.hasError) {
+      ref
+        ..invalidate(adminCanchasProvider)
+        ..invalidate(canchasProvider);
+      // Una cancha nueva todavía no tiene detalle abierto que refrescar.
+      if (!nueva) ref.invalidate(canchaProvider(cancha.id));
+    }
     state = resultado;
   }
 }
