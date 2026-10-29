@@ -6,8 +6,10 @@ class CanchaEnUsoException implements Exception {
   /// Cuántas reservas tiene la cancha.
   final int reservas;
 
-  String get mensaje =>
-      'Tiene $reservas reservas. Desactívala para dejar de mostrarla.';
+  String get mensaje {
+    final cuantas = reservas == 1 ? '1 reserva' : '$reservas reservas';
+    return 'Tiene $cuantas. Desactívala para dejar de mostrarla.';
+  }
 
   @override
   String toString() => mensaje;

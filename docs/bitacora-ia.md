@@ -15,6 +15,16 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-29 · @Lilfacce — Laboratorio S16: cierre del CRUD y pruebas de providers (#61, #65)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Terminar `feat/61-crud-canchas` para que quede lista: revisar y probar lo de Nathaly (#64), completar lo que faltara del #65 y abrir el PR."
+- **Resultado:** revisión de las reglas del repositorio (nombre único y borrado con reservas, en Firestore y en memoria); 5 pruebas de providers con `ProviderContainer`.
+- **Aceptado:** lo de los providers ya existía (el controlador deja el error en el estado, `eliminar` no toca la lista si falla y todo refresca invalidando); faltaba demostrarlo con pruebas: duplicado → error en el estado; crear y editar → la lista se vuelve a consultar y conserva el id; borrar en uso → error y la lista no cambia; desactivar → pasa a archivadas y sale del cliente.
+- **Rechazado / corregido:** al simplificar el mensaje de cancha en uso quedaba "Tiene 1 reservas"; se volvió a usar el singular y se ajustó la prueba.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 198 pruebas en verde.
+- **Commit / PR:** #61 (incluye #63, #64 y #65).
+
 ## 2026-10-29 · @Lilfacce — Laboratorio S16: formulario único de cancha, lista y mensajes (#63)
 
 - **Herramienta:** Claude Code.

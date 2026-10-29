@@ -114,7 +114,7 @@ void main() {
     );
     expect(
       const CanchaEnUsoException(1).toString(),
-      'Tiene 1 reservas. Desactívala para dejar de mostrarla.',
+      'Tiene 1 reserva. Desactívala para dejar de mostrarla.',
     );
   });
 }
