@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reservacancha/core/errors/cancha_en_uso_exception.dart';
 import 'package:reservacancha/features/admin/presentation/admin_canchas_screen.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
@@ -14,6 +15,9 @@ class _CanchasRepositoryEnMemoria extends Fake implements CanchasRepository {
   final List<Cancha> canchas;
   bool fallarAlEliminar = false;
 
+  /// Reservas por id de cancha: con alguna, la regla impide borrarla.
+  final Map<String, int> reservas = {};
+
   @override
   Future<List<Cancha>> obtenerCanchas({String? deporte}) async => [
     for (final cancha in canchas)
@@ -23,11 +27,19 @@ class _CanchasRepositoryEnMemoria extends Fake implements CanchasRepository {
   @override
   Future<void> eliminar(String id) async {
     if (fallarAlEliminar) throw Exception('sin conexión');
+    final enUso = reservas[id] ?? 0;
+    if (enUso > 0) throw CanchaEnUsoException(enUso);
     canchas.removeWhere((cancha) => cancha.id == id);
   }
 
   @override
   Future<void> restaurar(Cancha cancha) async => canchas.add(cancha);
+
+  @override
+  Future<void> cambiarActiva(String id, {required bool activa}) async {
+    final indice = canchas.indexWhere((cancha) => cancha.id == id);
+    canchas[indice] = canchas[indice].copyWith(activa: activa);
+  }
 }
 
 Cancha _cancha(String id, String nombre, String deporte) => Cancha(
@@ -145,4 +157,46 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('separa las canchas activas de las archivadas', (tester) async {
+    repositorio.canchas[1] = _polideportivo.copyWith(activa: false);
+    await _mostrarPantalla(tester, repositorio);
+
+    expect(find.text('Activas (2)'), findsOneWidget);
+    expect(find.text('Archivadas (1)'), findsOneWidget);
+    // La archivada aparece después del encabezado de archivadas.
+    final yArchivadas = tester.getTopLeft(find.text('Archivadas (1)')).dy;
+    final yPolideportivo = tester
+        .getTopLeft(find.text('Polideportivo Los Altos'))
+        .dy;
+    expect(yPolideportivo, greaterThan(yArchivadas));
+  });
+
+  testWidgets(
+    'una cancha con reservas no se borra: avisa y ofrece desactivarla',
+    (tester) async {
+      repositorio.reservas['c1'] = 3;
+      await _mostrarPantalla(tester, repositorio);
+
+      await tester.drag(
+        find.byKey(const ValueKey('c1')),
+        const Offset(-600, 0),
+      );
+      await tester.pumpAndSettle();
+
+      // Sigue ahí, con un mensaje claro y no técnico.
+      expect(find.text('Cancha Sintética 1'), findsOneWidget);
+      expect(repositorio.canchas, hasLength(3));
+      expect(
+        find.text('Tiene 3 reservas. Desactívala para dejar de mostrarla.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.widgetWithText(SnackBarAction, 'Desactivar'));
+      await tester.pumpAndSettle();
+
+      expect(repositorio.canchas.first.activa, isFalse);
+      expect(find.text('Archivadas (1)'), findsOneWidget);
+    },
+  );
 }
