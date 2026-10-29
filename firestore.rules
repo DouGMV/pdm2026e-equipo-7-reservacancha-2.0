@@ -21,6 +21,11 @@ service cloud.firestore {
                     && request.resource.data.rol == resource.data.rol;
     }
 
+    match /config/esquema {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     match /canchas/{canchaId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();

@@ -15,6 +15,29 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-29 · @Lilfacce — Laboratorio S16: cierre del CRUD y pruebas de providers (#61, #65)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Terminar `feat/61-crud-canchas` para que quede lista: revisar y probar lo de Nathaly (#64), completar lo que faltara del #65 y abrir el PR."
+- **Resultado:** revisión de las reglas del repositorio (nombre único y borrado con reservas, en Firestore y en memoria); 5 pruebas de providers con `ProviderContainer`.
+- **Aceptado:** lo de los providers ya existía (el controlador deja el error en el estado, `eliminar` no toca la lista si falla y todo refresca invalidando); faltaba demostrarlo con pruebas: duplicado → error en el estado; crear y editar → la lista se vuelve a consultar y conserva el id; borrar en uso → error y la lista no cambia; desactivar → pasa a archivadas y sale del cliente.
+- **Rechazado / corregido:** al simplificar el mensaje de cancha en uso quedaba "Tiene 1 reservas"; se volvió a usar el singular y se ajustó la prueba.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 198 pruebas en verde.
+- **Commit / PR:** #61 (incluye #63, #64 y #65).
+
+## 2026-10-29 · @Lilfacce — Laboratorio S16: formulario único de cancha, lista y mensajes (#63)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del #61 (issue #63) en `feat/61-crud-canchas`: un `CanchaForm` que cree y edite sin conocer providers, la lista con Activas y Archivadas, el mensaje de cancha en uso con Desactivar, el de nombre repetido y las pruebas de widget del laboratorio."
+- **Resultado:** `CanchaForm` (recibe `inicial` y `alGuardar`), `CanchaFormScreen` que lo conecta con el controlador, la lista por secciones, la regla al deslizar y 9 pruebas nuevas o ajustadas.
+- **Aceptado:** el formulario captura `CanchaDuplicadaException` y muestra el mensaje bajo el campo Nombre; la pantalla vuelve a lanzar el error del controlador para que el formulario lo muestre; editar arma la cancha con `inicial.id`.
+- **Rechazado / corregido:**
+  - Al sacar el formulario, nadie hacía `watch` de `canchaFormControllerProvider` (es `autoDispose`) y el estado se perdía entre el `guardar` y la lectura del error. La pantalla ahora lo mantiene vivo con un `ref.watch`.
+  - Se crearon `CanchaDuplicadaException` y `CanchaEnUsoException` con el contrato del #64 para poder mostrar los mensajes; Nathaly agrega las reglas en el repositorio. Mientras tanto, la prueba de nombre repetido usa un repositorio de prueba que simula la regla.
+  - El botón pasa de "Agregar cancha" a **Crear** y el de la lista a **Nueva**, como en el laboratorio; se ajustaron las pruebas.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 169 pruebas en verde.
+- **Commit / PR:** issue #63 (parte del #61).
+
 ## 2026-10-25 · @Lilfacce — Pantalla de Perfil y cerrar sesión (#44)
 
 - **Herramienta:** Claude Code.
@@ -234,3 +257,14 @@ qué especificaste, qué revisaste y qué rechazaste.
   - La prueba de "el cierre debe ser después de la apertura" dependía de que el menú desplegable construyera la hora elegida, que no siempre está en pantalla; se quitó y la regla queda en el validador del formulario.
   - Crear el administrador sigue siendo manual en la consola: las reglas no dejan que nadie se dé el rol `admin` desde la app, y así debe quedar.
 - **Verificación:** `flutter analyze` sin observaciones y 161 pruebas en verde.
+
+## 2026-10-29 · @DouGMV — Prueba de la migración de esquema (Lab S16, #67)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del #67: la prueba de migración con `fake_cloud_firestore` (base en versión 1 → migrar → datos iguales, `nombreNormalizado` y versión 2; migrar otra vez no cambia nada; una base en versión 2 no se toca). Julian todavía no subía el migrador: escribir la prueba primero y dejar el contrato definido para que él lo implemente."
+- **Resultado:** `test/core/data/migrador_esquema_test.dart` con 5 pruebas y el esqueleto de `MigradorEsquema` (`leerVersion`, `migrar`, `versionActual`) con `UnimplementedError`, que Julian implementó en el #66.
+- **Aceptado:** escribir la prueba antes que el código (las 5 fallaban hasta que llegó el migrador) y probar la idempotencia comparando todos los documentos completos, no solo el campo nuevo.
+- **Rechazado / corregido:**
+  - La IA propuso implementar también el migrador; se descartó porque el laboratorio pide que cada integrante haga su parte. Solo se usó una implementación temporal en local, que no se subió, para comprobar que la prueba estaba bien escrita.
+  - Se agregó el caso "una base ya en versión 2 no se toca", con canchas sin `nombreNormalizado` a propósito: sin él, un migrador que ignorara la versión también pasaría las demás pruebas.
+- **Verificación:** con el migrador de Julian, las 5 pruebas pasan sin cambiarlas; suite completa con 174 pruebas en verde y `flutter analyze` sin observaciones.

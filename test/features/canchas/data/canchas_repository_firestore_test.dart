@@ -1,9 +1,13 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reservacancha/core/utils/normalizador.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_firestore.dart';
+
+import '../../../helpers/cancha_con_nombre.dart';
 
 Map<String, Object?> _cancha(String nombre, String deporte) => {
   'nombre': nombre,
+  'nombreNormalizado': normalizarNombre(nombre),
   'deporte': deporte,
   'descripcion': 'Descripción',
   'ubicacion': 'Zona 1',
@@ -74,11 +78,24 @@ void main() {
   test('crear asigna un id nuevo y guarda los datos', () async {
     final base = (await repositorio.obtenerCancha('c1'))!;
 
-    final id = await repositorio.crear(base.copyWith(id: 'ignorado'));
+    final id = await repositorio.crear(
+      base.conNombre(id: 'ignorado', nombre: 'Nueva cancha'),
+    );
 
     expect(id, isNot('ignorado'));
-    expect((await repositorio.obtenerCancha(id))?.nombre, 'Alfa');
+    expect((await repositorio.obtenerCancha(id))?.nombre, 'Nueva cancha');
     expect(await repositorio.obtenerCanchas(), hasLength(4));
+  });
+
+  test('crear guarda el nombre normalizado', () async {
+    final base = (await repositorio.obtenerCancha('c1'))!;
+
+    final id = await repositorio.crear(
+      base.conNombre(id: 'ignorado', nombre: 'Nueva cancha'),
+    );
+
+    final doc = await firestore.collection('canchas').doc(id).get();
+    expect(doc.data()?['nombreNormalizado'], 'nueva cancha');
   });
 
   test('actualizar y cambiarActiva modifican la cancha', () async {

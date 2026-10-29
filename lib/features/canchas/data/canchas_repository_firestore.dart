@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:reservacancha/core/constants/firestore_collections.dart';
+import 'package:reservacancha/core/errors/cancha_duplicada_exception.dart';
+import 'package:reservacancha/core/errors/cancha_en_uso_exception.dart';
+import 'package:reservacancha/core/utils/normalizador.dart';
 import 'package:reservacancha/features/canchas/data/cancha_model.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
@@ -36,20 +38,41 @@ class CanchasRepositoryFirestore implements CanchasRepository {
 
   @override
   Future<String> crear(Cancha cancha) async {
+    await _validarNombre(cancha);
     final doc = await _canchas.add(CanchaModel.toMap(cancha));
     return doc.id;
   }
 
   @override
-  Future<void> actualizar(Cancha cancha) =>
-      _canchas.doc(cancha.id).update(CanchaModel.toMap(cancha));
+  Future<void> actualizar(Cancha cancha) async {
+    await _validarNombre(cancha, excluirId: cancha.id);
+    await _canchas.doc(cancha.id).update(CanchaModel.toMap(cancha));
+  }
+
+  Future<void> _validarNombre(Cancha cancha, {String? excluirId}) async {
+    final resultado = await _canchas
+        .where('nombreNormalizado', isEqualTo: normalizarNombre(cancha.nombre))
+        .get();
+    if (resultado.docs.any((doc) => doc.id != excluirId)) {
+      throw const CanchaDuplicadaException();
+    }
+  }
 
   @override
   Future<void> cambiarActiva(String id, {required bool activa}) =>
       _canchas.doc(id).update({'activa': activa});
 
   @override
-  Future<void> eliminar(String id) => _canchas.doc(id).delete();
+  Future<void> eliminar(String id) async {
+    final resultado = await _firestore
+        .collection(FirestoreCollections.reservas)
+        .where('canchaId', isEqualTo: id)
+        .count()
+        .get();
+    final reservas = resultado.count ?? 0;
+    if (reservas > 0) throw CanchaEnUsoException(reservas);
+    await _canchas.doc(id).delete();
+  }
 
   @override
   Future<void> restaurar(Cancha cancha) =>

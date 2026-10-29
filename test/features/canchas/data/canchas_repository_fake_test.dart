@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:reservacancha/features/canchas/data/canchas_repository_fake.dart';
 import 'package:reservacancha/features/canchas/data/canchas_repository_provider.dart';
 
+import '../../../helpers/cancha_con_nombre.dart';
 import '../../../helpers/repositorios_en_memoria.dart';
 
 void main() {
@@ -146,7 +146,9 @@ void main() {
       final repositorio = CanchasRepositoryFake(demora: Duration.zero);
       final base = (await repositorio.obtenerCancha('cancha-1'))!;
 
-      final id = await repositorio.crear(base);
+      final id = await repositorio.crear(
+        base.conNombre(nombre: 'Nueva cancha'),
+      );
       expect(id, isNot('cancha-1'));
       expect(await repositorio.obtenerCancha(id), isNotNull);
 

@@ -3,4 +3,5 @@ abstract final class FirestoreCollections {
   static const usuarios = 'usuarios';
   static const canchas = 'canchas';
   static const reservas = 'reservas';
+  static const config = 'config';
 }
