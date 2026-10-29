@@ -247,3 +247,14 @@ qué especificaste, qué revisaste y qué rechazaste.
   - La prueba de "el cierre debe ser después de la apertura" dependía de que el menú desplegable construyera la hora elegida, que no siempre está en pantalla; se quitó y la regla queda en el validador del formulario.
   - Crear el administrador sigue siendo manual en la consola: las reglas no dejan que nadie se dé el rol `admin` desde la app, y así debe quedar.
 - **Verificación:** `flutter analyze` sin observaciones y 161 pruebas en verde.
+
+## 2026-10-29 · @DouGMV — Prueba de la migración de esquema (Lab S16, #67)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Hacer mi parte del #67: la prueba de migración con `fake_cloud_firestore` (base en versión 1 → migrar → datos iguales, `nombreNormalizado` y versión 2; migrar otra vez no cambia nada; una base en versión 2 no se toca). Julian todavía no subía el migrador: escribir la prueba primero y dejar el contrato definido para que él lo implemente."
+- **Resultado:** `test/core/data/migrador_esquema_test.dart` con 5 pruebas y el esqueleto de `MigradorEsquema` (`leerVersion`, `migrar`, `versionActual`) con `UnimplementedError`, que Julian implementó en el #66.
+- **Aceptado:** escribir la prueba antes que el código (las 5 fallaban hasta que llegó el migrador) y probar la idempotencia comparando todos los documentos completos, no solo el campo nuevo.
+- **Rechazado / corregido:**
+  - La IA propuso implementar también el migrador; se descartó porque el laboratorio pide que cada integrante haga su parte. Solo se usó una implementación temporal en local, que no se subió, para comprobar que la prueba estaba bien escrita.
+  - Se agregó el caso "una base ya en versión 2 no se toca", con canchas sin `nombreNormalizado` a propósito: sin él, un migrador que ignorara la versión también pasaría las demás pruebas.
+- **Verificación:** con el migrador de Julian, las 5 pruebas pasan sin cambiarlas; suite completa con 174 pruebas en verde y `flutter analyze` sin observaciones.
