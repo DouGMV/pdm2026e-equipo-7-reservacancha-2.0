@@ -281,3 +281,14 @@ qué especificaste, qué revisaste y qué rechazaste.
   - La IA propuso implementar también el migrador; se descartó porque el laboratorio pide que cada integrante haga su parte. Solo se usó una implementación temporal en local, que no se subió, para comprobar que la prueba estaba bien escrita.
   - Se agregó el caso "una base ya en versión 2 no se toca", con canchas sin `nombreNormalizado` a propósito: sin él, un migrador que ignorara la versión también pasaría las demás pruebas.
 - **Verificación:** con el migrador de Julian, las 5 pruebas pasan sin cambiarlas; suite completa con 174 pruebas en verde y `flutter analyze` sin observaciones.
+
+## 2026-10-29 · @AngelOvalle29 — Refresco solo al guardar bien y Activas/Archivadas en los providers (#65)
+
+- **Herramienta:** Claude (claude.ai).
+- **Especificación:** "Con el issue #65 y lo que ya entró en el #69: que `guardar` no refresque cuando el repositorio lanza `CanchaDuplicadaException`, que `eliminar` refresque también el detalle, un provider que separe Activas y Archivadas, y pruebas que cuenten las consultas al repositorio."
+- **Resultado:** `guardar` invalida solo si salió bien (antes invalidaba también al fallar, y al crear refrescaba `canchaProvider('')`); `eliminar` invalida el detalle; nuevo `canchasAgrupadasProvider`; `admin_canchas_refresco_test.dart` con 4 pruebas que complementan las del #69.
+- **Aceptado:** contar las consultas al repositorio: las pruebas del #69 comparan ids y no detectan un refresco de más, porque la lista vuelve igual.
+- **Rechazado / corregido:**
+  - Mi primera versión llegó a `feat/61-crud-canchas` después del merge del #69; se pasó a una rama nueva desde `develop` para no arrastrar los commits ya integrados.
+  - Se dejó `quitarDeLaLista` (documentado): el `Dismissible` exige sacar la fila en ese frame y una invalidación mostraría la carga sin el SnackBar de Deshacer.
+- **Verificación:** `flutter analyze` sin observaciones, pruebas en verde y pruebas del lab en el emulador (API 36) contra Firestore; capturas en `docs/capturas/61-crud-canchas/`.
