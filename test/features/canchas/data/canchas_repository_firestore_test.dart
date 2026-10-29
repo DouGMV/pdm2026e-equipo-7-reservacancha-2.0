@@ -81,6 +81,15 @@ void main() {
     expect(await repositorio.obtenerCanchas(), hasLength(4));
   });
 
+  test('crear guarda el nombre normalizado', () async {
+    final base = (await repositorio.obtenerCancha('c1'))!;
+
+    final id = await repositorio.crear(base.copyWith(id: 'ignorado'));
+
+    final doc = await firestore.collection('canchas').doc(id).get();
+    expect(doc.data()?['nombreNormalizado'], 'alfa');
+  });
+
   test('actualizar y cambiarActiva modifican la cancha', () async {
     final cancha = (await repositorio.obtenerCancha('c1'))!;
 
