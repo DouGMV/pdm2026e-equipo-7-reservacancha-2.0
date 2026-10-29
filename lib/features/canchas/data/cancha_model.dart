@@ -1,3 +1,4 @@
+import 'package:reservacancha/core/utils/normalizador.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 
 /// Conversión entre [Cancha] y el documento `canchas/{canchaId}` de Firestore.
@@ -20,6 +21,7 @@ abstract final class CanchaModel {
   static Map<String, Object?> toMap(Cancha cancha) {
     return {
       'nombre': cancha.nombre,
+      'nombreNormalizado': normalizarNombre(cancha.nombre),
       'deporte': cancha.deporte,
       'descripcion': cancha.descripcion,
       'ubicacion': cancha.ubicacion,

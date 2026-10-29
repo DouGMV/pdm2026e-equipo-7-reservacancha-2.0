@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:reservacancha/core/constants/firestore_collections.dart';
+import 'package:reservacancha/core/utils/normalizador.dart';
+
 /// Migraciones del esquema de Firestore: el equivalente de `onUpgrade` de
 /// SQLite (Lab S16, issue #62).
 ///
@@ -15,24 +18,48 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MigradorEsquema {
   MigradorEsquema(this._firestore);
 
-  // ignore: unused_field, se usa en la implementación del #66.
   final FirebaseFirestore _firestore;
 
   /// Versión del esquema que espera esta versión de la app.
   static const versionActual = 2;
 
+  DocumentReference<Map<String, dynamic>> get _esquema =>
+      _firestore.collection(FirestoreCollections.config).doc('esquema');
+
   /// Versión guardada en `config/esquema`, o 1 si todavía no existe.
-  Future<int> leerVersion() {
-    // TODO(julianeduardo512-del): #66.
-    throw UnimplementedError('leerVersion (#66)');
+  Future<int> leerVersion() async {
+    final doc = await _esquema.get();
+    final version = doc.data()?['version'];
+    return version is num ? version.toInt() : 1;
   }
 
   /// Aplica los pasos pendientes hasta [versionActual]. Si la base ya está
   /// al día no escribe nada; correrlo dos veces deja el mismo resultado.
-  Future<void> migrar() {
-    // TODO(julianeduardo512-del): #66. Paso 1 → 2: agregar
-    // `nombreNormalizado` a cada documento de `canchas/` que no lo tenga, en
-    // un WriteBatch, y guardar `{version: 2}` en `config/esquema`.
-    throw UnimplementedError('migrar (#66)');
+  Future<void> migrar() async {
+    var version = await leerVersion();
+    if (version >= versionActual) return;
+
+    final batch = _firestore.batch();
+    if (version < 2) {
+      await _pasoV1aV2(batch);
+      version = 2;
+    }
+    batch.set(_esquema, {'version': version}, SetOptions(merge: true));
+    await batch.commit();
+  }
+
+  /// Paso 1 → 2: agrega `nombreNormalizado` a las canchas que no lo tengan.
+  Future<void> _pasoV1aV2(WriteBatch batch) async {
+    final canchas = await _firestore
+        .collection(FirestoreCollections.canchas)
+        .get();
+    for (final doc in canchas.docs) {
+      final datos = doc.data();
+      if (datos.containsKey('nombreNormalizado')) continue;
+      final nombre = datos['nombre'] as String? ?? '';
+      batch.update(doc.reference, {
+        'nombreNormalizado': normalizarNombre(nombre),
+      });
+    }
   }
 }
