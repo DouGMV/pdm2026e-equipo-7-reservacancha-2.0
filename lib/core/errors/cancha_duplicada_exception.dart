@@ -4,7 +4,7 @@
 class CanchaDuplicadaException implements Exception {
   const CanchaDuplicadaException();
 
-  String get mensaje => 'Ya existe una cancha con ese nombre.';
+  String get mensaje => 'Ya existe una cancha con ese nombre';
 
   @override
   String toString() => mensaje;

@@ -87,12 +87,12 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Guardar cambios'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Ya existe una cancha con ese nombre.'), findsOneWidget);
+    expect(find.text('Ya existe una cancha con ese nombre'), findsOneWidget);
 
     // Al escribir otro nombre, el mensaje desaparece.
     await tester.enterText(_campo('Polideportivo Los Altos'), 'Otro nombre');
     await tester.pump();
-    expect(find.text('Ya existe una cancha con ese nombre.'), findsNothing);
+    expect(find.text('Ya existe una cancha con ese nombre'), findsNothing);
   });
 
   testWidgets('cualquier otro error avisa sin salir del formulario', (

@@ -211,7 +211,7 @@ void main() {
 
     // Sigue en el formulario, con el mensaje bajo el nombre.
     expect(find.text('Nueva cancha'), findsOneWidget);
-    expect(find.text('Ya existe una cancha con ese nombre.'), findsOneWidget);
+    expect(find.text('Ya existe una cancha con ese nombre'), findsOneWidget);
     final todas = await tester.runAsync(canchas.obtenerCanchas);
     expect(todas, hasLength(5));
   });
