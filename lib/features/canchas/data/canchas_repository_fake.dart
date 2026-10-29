@@ -1,3 +1,6 @@
+import 'package:reservacancha/core/errors/cancha_duplicada_exception.dart';
+import 'package:reservacancha/core/errors/cancha_en_uso_exception.dart';
+import 'package:reservacancha/core/utils/normalizador.dart';
 import 'package:reservacancha/features/canchas/data/canchas_de_ejemplo.dart';
 import 'package:reservacancha/features/canchas/domain/cancha.dart';
 import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
@@ -10,7 +13,23 @@ import 'package:reservacancha/features/canchas/domain/canchas_repository.dart';
 /// eliminado siga eliminado mientras la app esté abierta, la app debe usar
 /// siempre la misma instancia (ver `canchasRepositoryProvider`).
 class CanchasRepositoryFake implements CanchasRepository {
-  CanchasRepositoryFake({this.demora = const Duration(seconds: 1)});
+  CanchasRepositoryFake({
+    this.demora = const Duration(seconds: 1),
+    Future<int> Function(String canchaId)? contarReservas,
+  }) : contarReservas = contarReservas ?? _sinReservas;
+
+  final Future<int> Function(String canchaId) contarReservas;
+
+  static Future<int> _sinReservas(String canchaId) async => 0;
+
+  void _validarNombre(Cancha cancha, {String? excluirId}) {
+    final nombre = normalizarNombre(cancha.nombre);
+    if (_canchas.any(
+      (otra) => otra.id != excluirId && normalizarNombre(otra.nombre) == nombre,
+    )) {
+      throw const CanchaDuplicadaException();
+    }
+  }
 
   final Duration demora;
 
@@ -39,6 +58,7 @@ class CanchasRepositoryFake implements CanchasRepository {
   @override
   Future<String> crear(Cancha cancha) async {
     await Future<void>.delayed(demora);
+    _validarNombre(cancha);
     final id = 'cancha-nueva-${_siguienteId++}';
     _canchas.add(cancha.copyWith(id: id));
     return id;
@@ -47,7 +67,9 @@ class CanchasRepositoryFake implements CanchasRepository {
   @override
   Future<void> actualizar(Cancha cancha) async {
     await Future<void>.delayed(demora);
-    _canchas[_indice(cancha.id)] = cancha;
+    final indice = _indice(cancha.id);
+    _validarNombre(cancha, excluirId: cancha.id);
+    _canchas[indice] = cancha;
   }
 
   @override
@@ -70,7 +92,9 @@ class CanchasRepositoryFake implements CanchasRepository {
     if (indice == -1) {
       throw StateError('No existe una cancha con id $id');
     }
-    _canchas.removeAt(indice);
+    final reservas = await contarReservas(id);
+    if (reservas > 0) throw CanchaEnUsoException(reservas);
+    _canchas.removeAt(_indice(id));
   }
 
   @override

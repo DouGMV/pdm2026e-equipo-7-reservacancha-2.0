@@ -1,0 +1,16 @@
+/// La cancha tiene reservas que apuntan a ella, así que no se puede borrar:
+/// se ofrece desactivarla.
+class CanchaEnUsoException implements Exception {
+  const CanchaEnUsoException(this.reservas);
+
+  /// Cuántas reservas tiene la cancha.
+  final int reservas;
+
+  String get mensaje {
+    final cuantas = reservas == 1 ? '1 reserva' : '$reservas reservas';
+    return 'Tiene $cuantas. Desactívala para dejar de mostrarla.';
+  }
+
+  @override
+  String toString() => mensaje;
+}
