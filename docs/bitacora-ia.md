@@ -38,6 +38,19 @@ qué especificaste, qué revisaste y qué rechazaste.
 - **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 169 pruebas en verde.
 - **Commit / PR:** issue #63 (parte del #61).
 
+## 2026-10-25 · @Lilfacce — Reiniciar los datos del usuario al cambiar la sesión (#55)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Que `misReservasProvider` y los filtros (`filtroListadoProvider`, `filtroCanchasProvider`, `filtroReservasProvider`) se reinicien cuando cambia el usuario, con una prueba de dos usuarios seguidos que falle sin el cambio." Viene de la revisión del #45.
+- **Resultado:** en el `ref.listen(sesionProvider)` del router, al cambiar el `uid` se invalidan los tres filtros (junto al reinicio de la pestaña del #44); 2 pruebas nuevas en `reinicio_por_sesion_test.dart`.
+- **Aceptado:** reiniciar desde el listener del router, igual que la pestaña. Así las pruebas de pantallas que no sustituyen la autenticación siguen funcionando.
+- **Rechazado / corregido:**
+  - `misReservasProvider` ya dependía del `uid` desde el #41 (Firebase); no se cambió, pero la prueba lo cubre para que no se rompa.
+  - Se descartó que cada filtro hiciera `watch` de la sesión: cuatro archivos de pruebas de pantallas tendrían que sustituir Firebase solo por eso.
+  - Se agregó una prueba para que los filtros se conserven si la sesión vuelve a emitir con el **mismo** usuario.
+- **Verificación:** `dart format .`, `flutter analyze` sin observaciones y 152 pruebas en verde. Prueba de mutación: sin las invalidaciones, la prueba de dos usuarios falla.
+- **Commit / PR:** issue #55 (rama sobre `feature/44-pantalla-perfil`, depende del #54).
+
 ## 2026-10-25 · @Lilfacce — Pantalla de Perfil y cerrar sesión (#44)
 
 - **Herramienta:** Claude Code.
