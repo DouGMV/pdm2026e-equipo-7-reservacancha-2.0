@@ -292,3 +292,13 @@ qué especificaste, qué revisaste y qué rechazaste.
   - Mi primera versión llegó a `feat/61-crud-canchas` después del merge del #69; se pasó a una rama nueva desde `develop` para no arrastrar los commits ya integrados.
   - Se dejó `quitarDeLaLista` (documentado): el `Dismissible` exige sacar la fila en ese frame y una invalidación mostraría la carga sin el SnackBar de Deshacer.
 - **Verificación:** `flutter analyze` sin observaciones, pruebas en verde y pruebas del lab en el emulador (API 36) contra Firestore; capturas en `docs/capturas/61-crud-canchas/`.
+## 2026-10-29 · @DouGMV — Guía visual en el repositorio (#8)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Cerrar el #8 (Figma) y hacer la guía visual en el repositorio: documentar la app tal como está implementada, con sus capturas."
+- **Resultado:** `docs/GUIA_VISUAL.md` con principios, paleta, tipografía, espaciado, íconos, componentes, los cuatro estados, reglas de textos, accesibilidad y la galería de capturas por pantalla; enlace en el README y el comentario de `AppTheme` actualizado.
+- **Aceptado:** sacar los colores con una prueba temporal que imprimió el `ColorScheme` real generado desde la semilla, en lugar de copiar valores de la documentación de Material; la prueba no se subió.
+- **Rechazado / corregido:**
+  - El primer borrador decía que `secondary` pintaba el indicador de la barra inferior y que `surfaceContainer` era el fondo de las tarjetas; en Material 3 el indicador usa `secondaryContainer` y las tarjetas `surfaceContainerLow`. Se corrigió.
+  - Al revisar los textos aparecieron mensajes con "No se pudo …" junto a "No pudimos …"; la guía fija la segunda forma y deja anotado lo pendiente de unificar, sin tocar pantallas en este PR.
+- **Verificación:** enlaces a las 28 capturas comprobados; `flutter analyze` y `flutter test` en verde.
