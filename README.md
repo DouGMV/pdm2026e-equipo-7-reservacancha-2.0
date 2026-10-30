@@ -41,6 +41,7 @@ Flutter · Dart · Riverpod · go_router · Firebase (Authentication + Cloud Fir
 | [docs/ROLES.md](docs/ROLES.md) | Roles, responsabilidades y asignación por sprint |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Capas, estructura de carpetas, modelo de datos |
 | [docs/TECNOLOGIAS.md](docs/TECNOLOGIAS.md) | Tecnologías y paquetes |
+| [docs/GUIA_VISUAL.md](docs/GUIA_VISUAL.md) | Colores, tipografía, componentes, textos y capturas de las pantallas |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Flujo de Git, ramas, commits, PRs y revisión |
 | [CLAUDE.md](CLAUDE.md) | Contexto e instrucciones para trabajar con Claude Code |
 | [AGENTS.md](AGENTS.md) | Instrucciones para otros agentes de IA (Codex, Copilot, Cursor, etc.) |
