@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:reservacancha/core/router/navegacion_provider.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
+import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_providers.dart';
+import 'package:reservacancha/features/reservas/presentation/reservar_providers.dart';
 
 class MisReservasScreen extends ConsumerWidget {
   const MisReservasScreen({super.key});
@@ -21,14 +23,14 @@ class MisReservasScreen extends ConsumerWidget {
       body: reservas.when(
         skipLoadingOnRefresh: false,
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _MensajeConAccion(
+        error: (error, stackTrace) => MensajeConAccion(
           icono: Icons.cloud_off,
           mensaje: 'No pudimos cargar tus reservas.',
           accion: 'Reintentar',
           alPresionar: () => ref.invalidate(misReservasProvider),
         ),
         data: (reservas) => reservas.isEmpty
-            ? _MensajeConAccion(
+            ? MensajeConAccion(
                 icono: Icons.event_available,
                 mensaje: 'Aún no tienes reservas.',
                 accion: 'Ver canchas',
@@ -49,62 +51,110 @@ class _ListaReservas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colores = Theme.of(context).colorScheme;
-    final ahora = DateTime.now();
-    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
-    return ListView.separated(
-      itemCount: reservas.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final reserva = reservas[index];
-        final confirmada = reserva.estado == EstadoReserva.confirmada;
-        final fechaReserva = DateTime.tryParse(reserva.fecha);
-        final fechaReservaSinHora = fechaReserva == null
-            ? hoy.add(const Duration(days: 1))
-            : DateTime(fechaReserva.year, fechaReserva.month, fechaReserva.day);
-        final esFutura =
-            fechaReservaSinHora.isAfter(hoy) ||
-            (fechaReservaSinHora.isAtSameMomentAs(hoy) &&
-                reserva.hora > ahora.hour);
-        final puedeCancelar = confirmada && esFutura;
+    final ahora = ref.watch(relojProvider)();
+    final proximas = [
+      for (final reserva in reservas)
+        if (reserva.sePuedeCancelar(ahora)) reserva,
+    ]..sort((a, b) => _inicio(a)!.compareTo(_inicio(b)!));
+    final historial =
+        [
+          for (final reserva in reservas)
+            if (!reserva.sePuedeCancelar(ahora)) reserva,
+        ]..sort((a, b) {
+          final inicioA = _inicio(a);
+          final inicioB = _inicio(b);
+          if (inicioA == null) return 1;
+          if (inicioB == null) return -1;
+          return inicioB.compareTo(inicioA);
+        });
 
-        return ListTile(
-          title: Text(reserva.canchaNombre),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('${reserva.fecha} · ${formatearHora(reserva.hora)}'),
-              if (puedeCancelar)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: () => _cancelarReserva(context, ref, reserva),
-                    child: const Text('Cancelar'),
-                  ),
-                ),
-            ],
+    return ListView(
+      children: [
+        if (proximas.isNotEmpty) ...[
+          const _Encabezado('Próximas'),
+          for (final reserva in proximas) _FilaReserva(reserva: reserva),
+        ],
+        if (historial.isNotEmpty) ...[
+          const _Encabezado('Historial'),
+          for (final reserva in historial) _FilaReserva(reserva: reserva),
+        ],
+      ],
+    );
+  }
+
+  static DateTime? _inicio(Reserva reserva) {
+    final fecha = DateTime.tryParse(reserva.fecha);
+    if (fecha == null) return null;
+    return DateTime(fecha.year, fecha.month, fecha.day, reserva.hora);
+  }
+}
+
+class _Encabezado extends StatelessWidget {
+  const _Encabezado(this.texto);
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        texto,
+        style: tema.textTheme.titleSmall?.copyWith(
+          color: tema.colorScheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _FilaReserva extends ConsumerWidget {
+  const _FilaReserva({required this.reserva});
+
+  final Reserva reserva;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colores = Theme.of(context).colorScheme;
+    final confirmada = reserva.estado == EstadoReserva.confirmada;
+    final puedeCancelar = reserva.sePuedeCancelar(ref.watch(relojProvider)());
+    final fecha = DateTime.tryParse(reserva.fecha);
+
+    return ListTile(
+      title: Text(reserva.canchaNombre),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${fecha == null ? reserva.fecha : formatearFechaLarga(fecha)} · '
+            '${formatearBloque(reserva.hora)}',
           ),
-          trailing: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(formatearMoneda(reserva.total)),
-              Text(
-                confirmada ? 'Confirmada' : 'Cancelada',
-                style: TextStyle(
-                  color: confirmada ? colores.primary : colores.error,
-                ),
+          if (puedeCancelar)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: TextButton(
+                style: TextButton.styleFrom(minimumSize: const Size(64, 48)),
+                onPressed: () => _cancelarReserva(context, ref, reserva),
+                child: const Text('Cancelar'),
               ),
-            ],
+            ),
+        ],
+      ),
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(formatearMoneda(reserva.total)),
+          Text(
+            confirmada ? 'Confirmada' : 'Cancelada',
+            style: TextStyle(
+              color: confirmada ? colores.primary : colores.error,
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -149,39 +199,5 @@ class _ListaReservas extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-class _MensajeConAccion extends StatelessWidget {
-  const _MensajeConAccion({
-    required this.icono,
-    required this.mensaje,
-    required this.accion,
-    required this.alPresionar,
-  });
-
-  final IconData icono;
-  final String mensaje;
-  final String accion;
-  final VoidCallback alPresionar;
-
-  @override
-  Widget build(BuildContext context) {
-    final colores = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, size: 48, color: colores.primary),
-            const SizedBox(height: 16),
-            Text(mensaje, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: alPresionar, child: Text(accion)),
-          ],
-        ),
-      ),
-    );
   }
 }

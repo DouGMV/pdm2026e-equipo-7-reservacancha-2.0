@@ -30,4 +30,19 @@ class Reserva {
   final int hora;
   final EstadoReserva estado;
   final num total;
+
+  /// Se puede cancelar si sigue confirmada y su hora de inicio no ha llegado.
+  /// Si la fecha no se puede interpretar, no se puede cancelar.
+  bool sePuedeCancelar(DateTime ahora) {
+    if (estado != EstadoReserva.confirmada) return false;
+    final fechaReserva = DateTime.tryParse(fecha);
+    if (fechaReserva == null) return false;
+    final inicio = DateTime(
+      fechaReserva.year,
+      fechaReserva.month,
+      fechaReserva.day,
+      hora,
+    );
+    return ahora.isBefore(inicio);
+  }
 }
