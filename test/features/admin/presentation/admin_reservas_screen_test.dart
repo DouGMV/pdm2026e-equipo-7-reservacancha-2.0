@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reservacancha/core/errors/reserva_no_disponible_exception.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_screen.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
@@ -16,6 +17,7 @@ class _ReservasEnMemoria extends Fake implements ReservasRepository {
   bool fallarConsulta = false;
   bool fallarEliminar = false;
   bool fallarRestaurar = false;
+  bool horarioTomado = false;
   int consultasMisReservas = 0;
 
   @override
@@ -43,6 +45,7 @@ class _ReservasEnMemoria extends Fake implements ReservasRepository {
   @override
   Future<void> restaurar(Reserva reserva) async {
     if (fallarRestaurar) throw Exception('sin conexión');
+    if (horarioTomado) throw const ReservaNoDisponibleException();
     reservas.add(reserva);
   }
 }
@@ -215,7 +218,7 @@ void main() {
 
     expect(find.text('Cancha Sintética 1'), findsOneWidget);
     expect(repositorio.reservas, hasLength(2));
-    expect(find.text('No se pudo eliminar la reserva.'), findsOneWidget);
+    expect(find.text('No pudimos eliminar la reserva.'), findsOneWidget);
 
     await _cerrarSnackBar(tester);
   });
@@ -291,6 +294,25 @@ void main() {
     await _cerrarSnackBar(tester);
   });
 
+  testWidgets('si otra persona tomó el horario, Deshacer lo avisa', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([_sintetica, _padel])
+      ..horarioTomado = true;
+    await _mostrarPantalla(tester, repositorio);
+
+    await _deslizar(tester, _sintetica.id);
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Ese horario ya fue reservado por otra persona.'),
+      findsOneWidget,
+    );
+
+    await _cerrarSnackBar(tester);
+  });
+
   testWidgets('si restaurar falla, avisa y la reserva no vuelve', (
     tester,
   ) async {
@@ -302,7 +324,7 @@ void main() {
     await tester.tap(find.text('Deshacer'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No se pudo restaurar la reserva.'), findsOneWidget);
+    expect(find.text('No pudimos restaurar la reserva.'), findsOneWidget);
     expect(find.text('Cancha Sintética 1'), findsNothing);
 
     await _cerrarSnackBar(tester);
@@ -372,5 +394,48 @@ void main() {
 
     expect(find.textContaining('Ana Pérez'), findsOneWidget);
     expect(find.textContaining('Cliente'), findsOneWidget);
+  });
+
+  testWidgets('Deshacer funciona aunque ya se haya cerrado la pantalla', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([_sintetica]);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [reservasRepositoryProvider.overrideWithValue(repositorio)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (context) => const AdminReservasScreen(),
+                  ),
+                ),
+                child: const Text('Abrir'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Abrir'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.byType(Dismissible), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+    expect(repositorio.reservas, isEmpty);
+
+    // El SnackBar vive en el ScaffoldMessenger de la app: sigue visible al
+    // salir de la pantalla, pero el provider autoDispose ya se descartó.
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Deshacer'), findsOneWidget);
+
+    await tester.tap(find.text('Deshacer'));
+    await tester.pumpAndSettle();
+
+    expect(repositorio.reservas, hasLength(1));
+    expect(tester.takeException(), isNull);
   });
 }

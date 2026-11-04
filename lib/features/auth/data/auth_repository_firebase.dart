@@ -90,11 +90,10 @@ class AuthRepositoryFirebase implements AuthRepository {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (e) {
-      throw AuthException(
-        e.code == 'user-not-found'
-            ? 'No encontramos una cuenta con ese correo'
-            : mensajeDeErrorAuth(e.code),
-      );
+      // No se avisa si la cuenta existe: revelaría qué correos están
+      // registrados.
+      if (e.code == 'user-not-found') return;
+      throw AuthException(mensajeDeErrorAuth(e.code));
     }
   }
 

@@ -17,9 +17,9 @@ qué especificaste, qué revisaste y qué rechazaste.
 
 ## 2026-11-04 · @DouGMV — Migración por lotes y pulido para la entrega 2.1.0 (#79)
 
-- **Herramienta:** OpenCode.
+- **Herramienta:** OpenCode para el trabajo y Claude Code para la revisión.
 - **Especificación:** "Completar las 11 tareas de pulido en `feature/79-migracion-y-pulido`: migración por lotes, registro, reservas (próximas/historial, nombre del cliente y restaurar), refresco de listas, admin autoDispose, branding, recuperación de contraseña, localización, documentación y versión 2.1.0. Sin push ni PR; un commit por tarea y pruebas en verde."
-- **Resultado:** las 11 tareas quedaron implementadas y probadas, con 11 commits locales en la rama.
+- **Resultado:** migración por lotes, registro, Mis reservas, deslizar para actualizar, nombre del cliente, logo, recuperar contraseña, español y versión 2.1.0. El reporte de OpenCode decía que las 11 tareas estaban completas, pero en la revisión faltaban partes (ver abajo).
 - **Aceptado:** la migración guarda la versión al final y divide en lotes de 500; el registro espera el perfil antes de emitir la sesión; las reservas se separan en próximas e historial con `sePuedeCancelar`; el admin descarta sus reservas al cerrarse; las listas se refrescan sin ocultar datos; se guarda `usuarioNombre` y restaurar valida dentro de una transacción; se agregaron logo, íconos, recuperación de contraseña y localización `es`.
 - **Rechazado / corregido:**
   - La prueba de `RefreshIndicator` con `fling` no disparaba `onRefresh`; se usó `drag` con `pump`.
@@ -27,8 +27,11 @@ qué especificaste, qué revisaste y qué rechazaste.
   - El repositorio fake no conservaba `usuarioNombre` al cancelar; se corrigió.
   - En `CanchaFormScreen` se reemplazó `throw estado.error!` por `Error.throwWithStackTrace` para conservar el stack original.
   - No se tocó la agrupación Activas/Archivadas de admin ni los archivos de configuración de Firebase.
-- **Verificación:** `dart format .` sin cambios, `flutter analyze` sin observaciones y 234 pruebas en verde. Queda pendiente instalar el APK en un dispositivo real.
-- **Commit / PR:** rama `feature/79-migracion-y-pulido`, 11 commits locales; sin push ni PR (entrega pendiente).
+  - **Revisión:** `autoDispose` en `reservasAdminProvider` rompía Deshacer: al salir de la pantalla y tocarlo, la reserva se perdía sin avisar, y ninguna prueba lo cubría. Se reprodujo con una prueba y se restaura desde el contenedor (`restaurarReserva`).
+  - **Revisión:** faltaban el cambio a "No pudimos …", el mensaje "Ese horario ya fue reservado por otra persona." y parte de `docs/ARQUITECTURA.md` (rutas, `nombreNormalizado`, `config/esquema`).
+  - **Revisión:** recuperar contraseña decía si un correo tenía cuenta. Ahora el aviso es el mismo exista o no, y se cambiaron las pruebas que exigían lo contrario.
+- **Verificación:** `dart format .` sin cambios, `flutter analyze` sin observaciones y 236 pruebas en verde. Queda pendiente instalar el APK en un dispositivo real.
+- **Commit / PR:** rama `feature/79-migracion-y-pulido` (#79).
 
 ## 2026-10-31 · @Lilfacce — Preparación de la exposición: ADR, plantilla de usuarios y README (#76)
 

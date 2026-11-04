@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:reservacancha/core/errors/reserva_no_disponible_exception.dart';
 import 'package:reservacancha/core/utils/formatters.dart';
 import 'package:reservacancha/core/widgets/mensaje_con_accion.dart';
 import 'package:reservacancha/features/admin/presentation/admin_reservas_providers.dart';
@@ -143,7 +144,7 @@ class _ReservaDeslizable extends ConsumerWidget {
         } on Exception {
           _mostrar(
             mensajes,
-            const SnackBar(content: Text('No se pudo eliminar la reserva.')),
+            const SnackBar(content: Text('No pudimos eliminar la reserva.')),
           );
           return false;
         }
@@ -151,8 +152,8 @@ class _ReservaDeslizable extends ConsumerWidget {
       // La fila sale de la lista cuando termina la animación de deslizar.
       onDismissed: (_) {
         final mensajes = ScaffoldMessenger.of(context);
-        final controller = ref.read(reservasAdminProvider.notifier)
-          ..quitarDeLaLista(reserva);
+        final contenedor = ProviderScope.containerOf(context, listen: false);
+        ref.read(reservasAdminProvider.notifier).quitarDeLaLista(reserva);
         _mostrar(
           mensajes,
           SnackBar(
@@ -162,7 +163,7 @@ class _ReservaDeslizable extends ConsumerWidget {
             persist: false,
             action: SnackBarAction(
               label: 'Deshacer',
-              onPressed: () => _restaurar(controller, mensajes),
+              onPressed: () => _restaurar(contenedor, mensajes),
             ),
           ),
         );
@@ -172,15 +173,22 @@ class _ReservaDeslizable extends ConsumerWidget {
   }
 
   Future<void> _restaurar(
-    ReservasAdminController controller,
+    ProviderContainer contenedor,
     ScaffoldMessengerState mensajes,
   ) async {
     try {
-      await controller.restaurar(reserva);
+      await restaurarReserva(contenedor, reserva);
+    } on ReservaNoDisponibleException {
+      _mostrar(
+        mensajes,
+        const SnackBar(
+          content: Text('Ese horario ya fue reservado por otra persona.'),
+        ),
+      );
     } on Exception {
       _mostrar(
         mensajes,
-        const SnackBar(content: Text('No se pudo restaurar la reserva.')),
+        const SnackBar(content: Text('No pudimos restaurar la reserva.')),
       );
     }
   }

@@ -78,10 +78,7 @@ class AuthRepositoryFake implements AuthRepository {
   Future<void> recuperarContrasena({required String email}) async {
     await _esperar();
     final correo = _normalizar(email);
-    if (!_cuentas.containsKey(correo)) {
-      throw const AuthException('No encontramos una cuenta con ese correo');
-    }
-    correosDeRecuperacion.add(correo);
+    if (_cuentas.containsKey(correo)) correosDeRecuperacion.add(correo);
   }
 
   @override

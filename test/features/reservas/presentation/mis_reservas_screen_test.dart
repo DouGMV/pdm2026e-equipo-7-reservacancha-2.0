@@ -364,7 +364,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('No pudimos cancelar la reserva. Inténtalo de nuevo.'),
+      find.text('No pudimos cancelar la reserva. Intenta de nuevo.'),
       findsOneWidget,
     );
   });

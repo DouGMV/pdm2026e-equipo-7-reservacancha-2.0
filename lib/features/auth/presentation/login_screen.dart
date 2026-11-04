@@ -42,7 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (estado.hasError) {
       final mensaje = switch (estado.error) {
         AuthException(:final mensaje) => mensaje,
-        _ => 'No se pudo iniciar sesión. Intenta de nuevo.',
+        _ => 'No pudimos iniciar sesión. Intenta de nuevo.',
       };
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(mensaje)));
@@ -99,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             AuthException(:final mensaje) => mensaje,
             _ => 'No pudimos enviar el correo. Intenta de nuevo.',
           }
-        : 'Te enviamos un correo para restablecer tu contraseña.';
+        : 'Si el correo está registrado, te enviamos un enlace.';
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(mensaje)));
   }

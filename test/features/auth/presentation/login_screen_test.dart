@@ -86,18 +86,20 @@ void main() {
     await pedirRecuperacion(tester, 'ana@correo.com');
 
     expect(
-      find.text('Te enviamos un correo para restablecer tu contraseña.'),
+      find.text('Si el correo está registrado, te enviamos un enlace.'),
       findsOneWidget,
     );
   });
 
-  testWidgets('con una cuenta inexistente avisa en español', (tester) async {
+  testWidgets('con una cuenta inexistente muestra el mismo aviso', (
+    tester,
+  ) async {
     await abrirApp(tester);
 
     await pedirRecuperacion(tester, 'nadie@correo.com');
 
     expect(
-      find.text('No encontramos una cuenta con ese correo'),
+      find.text('Si el correo está registrado, te enviamos un enlace.'),
       findsOneWidget,
     );
   });

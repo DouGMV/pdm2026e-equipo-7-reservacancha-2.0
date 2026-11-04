@@ -167,19 +167,13 @@ void main() {
         .called(1);
   });
 
-  test('recuperar contraseña traduce la cuenta inexistente', () async {
+  test('recuperar contraseña no revela si la cuenta existe', () async {
     when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
         .thenThrow(FirebaseAuthException(code: 'user-not-found'));
 
     await expectLater(
       repositorio.recuperarContrasena(email: 'nadie@correo.com'),
-      throwsA(
-        isA<AuthException>().having(
-          (e) => e.mensaje,
-          'mensaje',
-          'No encontramos una cuenta con ese correo',
-        ),
-      ),
+      completes,
     );
   });
 

@@ -71,7 +71,9 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 | `/` | Pantalla principal con barra inferior (ver pestañas abajo) | Cliente |
 | `/cancha/:id` | Detalle de cancha y selección de fecha/horario | Cliente |
 | `/reserva/confirmar` | Resumen y confirmación | Cliente |
-| `/admin/canchas` | Gestión de canchas: filtro por deporte y eliminar con Deshacer | Admin |
+| `/admin/canchas` | Gestión de canchas: activas y archivadas, filtro por deporte, desactivar y eliminar con Deshacer | Admin |
+| `/admin/canchas/nueva` | Crear cancha (formulario único `CanchaForm`) | Admin |
+| `/admin/canchas/:id/editar` | Editar cancha (mismo formulario, conserva el id) | Admin |
 | `/admin/reservas` | Reservas: filtro por estado y eliminar con Deshacer | Admin |
 
 ### Pestañas de la pantalla principal (`/`)
@@ -80,8 +82,8 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 |---|---|---|
 | Canchas | Listado de canchas (filtro por deporte) | Cliente |
 | Mis reservas | Reservas próximas e historial, con opción de cancelar | Cliente |
-| Admin | Accesos a `/admin/canchas` y `/admin/reservas` | Admin (hoy visible para todos; se oculta con la redirección por rol, #7) |
-| Perfil | Datos del usuario y cerrar sesión ("Próximamente" hasta el Sprint 3) | Cliente |
+| Admin | Accesos a `/admin/canchas` y `/admin/reservas` | Admin (solo se muestra a ese rol; las rutas `/admin/...` también lo exigen) |
+| Perfil | Datos del usuario y cerrar sesión | Cliente |
 
 ## Navegación
 
@@ -105,6 +107,7 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 | Campo | Tipo | Ejemplo |
 |---|---|---|
 | nombre | string | "Cancha Sintética 1" |
+| nombreNormalizado | string | "cancha sintetica 1" (minúsculas, sin tildes ni espacios repetidos; para el nombre único) |
 | deporte | string | "futbol" \| "basquetbol" \| "voleibol" \| "padel" |
 | descripcion | string | |
 | ubicacion | string | |
@@ -113,6 +116,13 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 | horaApertura | number | 7 |
 | horaCierre | number | 22 |
 | activa | bool | true |
+
+### `config/esquema`
+| Campo | Tipo | Ejemplo |
+|---|---|---|
+| version | number | 2 (si el documento no existe, la base está en la versión 1) |
+
+Lo escribe `MigradorEsquema` cuando inicia sesión un admin (ver `docs/adr/0002-migraciones-con-version-en-firestore.md`).
 
 ### `reservas/{reservaId}`
 | Campo | Tipo | Ejemplo |
@@ -138,7 +148,7 @@ La reserva se crea dentro de una **transacción** de Firestore:
 
 Si dos usuarios reservan el mismo horario al mismo tiempo, Firestore reintenta la transacción y solo uno lo logra. Para reservar varias horas seguidas se crea un documento por hora dentro de la misma transacción.
 
-**Restaurar una reserva cancelada** vuelve a leer el documento dentro de una transacción: si otra persona ya tomó ese horario (está `confirmada`), lanza "Horario no disponible" en lugar de sobrescribirla. Al cancelar solo cambia el estado, por lo que se conserva el `usuarioNombre` original.
+**Restaurar una reserva eliminada** (Deshacer del administrador) vuelve a leer el documento dentro de una transacción: si otra persona ya tomó ese horario (está `confirmada`), lanza "Horario no disponible" en lugar de sobrescribirla. Al cancelar solo cambia el estado, por lo que se conserva el `usuarioNombre` original.
 
 **Disponibilidad:** la pantalla de detalle consulta `reservas` donde `canchaId == X`, `fecha == Y` y `estado == 'confirmada'`, y marca como ocupadas esas horas entre `horaApertura` y `horaCierre`. Firestore pedirá crear un índice compuesto la primera vez; el enlace aparece en la consola de depuración.
 

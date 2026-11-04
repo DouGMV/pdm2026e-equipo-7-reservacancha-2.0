@@ -79,17 +79,10 @@ void main() {
     expect(repositorio.correosDeRecuperacion, ['ana@correo.com']);
   });
 
-  test('recuperar contraseña avisa si la cuenta no existe', () {
-    expect(
-      repositorio.recuperarContrasena(email: 'nadie@correo.com'),
-      throwsA(
-        isA<AuthException>().having(
-          (error) => error.mensaje,
-          'mensaje',
-          'No encontramos una cuenta con ese correo',
-        ),
-      ),
-    );
+  test('recuperar contraseña no revela si la cuenta existe', () async {
+    await repositorio.recuperarContrasena(email: 'nadie@correo.com');
+
+    expect(repositorio.correosDeRecuperacion, isEmpty);
   });
 
   test('cerrar sesión emite null a quien ya escuchaba', () async {

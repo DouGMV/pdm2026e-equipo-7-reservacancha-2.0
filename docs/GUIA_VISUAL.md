@@ -134,8 +134,6 @@ Toda pantalla que carga datos muestra uno de estos cuatro estados con `AsyncValu
 - **Formatos:** precio `Q150.00/h` (`formatearMoneda`), hora `18:00` y bloque `18:00 – 19:00` (`formatearHora`, `formatearBloque`), fecha larga "lunes 26 de octubre" (`formatearFechaLarga`). En Firestore la fecha se guarda como `yyyy-MM-dd`.
 - **Los botones son verbos** que dicen el resultado: Crear, Guardar cambios, Confirmar reserva, Reintentar, Deshacer.
 
-Pendiente de unificar: algunos mensajes de reservas y de Perfil todavía dicen "No se pudo …"; la forma de la guía es "No pudimos …".
-
 ## Accesibilidad
 
 - Áreas táctiles de al menos 48 × 48.

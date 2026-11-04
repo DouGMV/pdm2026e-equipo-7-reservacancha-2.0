@@ -197,9 +197,7 @@ class _FilaReserva extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'No pudimos cancelar la reserva. Inténtalo de nuevo.',
-            ),
+            content: Text('No pudimos cancelar la reserva. Intenta de nuevo.'),
           ),
         );
       }
