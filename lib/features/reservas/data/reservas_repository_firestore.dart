@@ -79,10 +79,19 @@ class ReservasRepositoryFirestore implements ReservasRepository {
   Future<void> eliminar(String id) => _reservas.doc(id).delete();
 
   @override
-  Future<void> restaurar(Reserva reserva) => _reservas.doc(reserva.id).set({
-    ...ReservaModel.toMap(reserva),
-    'creadoEn': FieldValue.serverTimestamp(),
-  });
+  Future<void> restaurar(Reserva reserva) async {
+    final referencia = _reservas.doc(reserva.id);
+    await _firestore.runTransaction((transaccion) async {
+      final actual = await transaccion.get(referencia);
+      if (actual.data()?['estado'] == EstadoReserva.confirmada.name) {
+        throw const ReservaNoDisponibleException();
+      }
+      transaccion.set(referencia, {
+        ...ReservaModel.toMap(reserva),
+        'creadoEn': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   /// Más recientes primero (los índices de `firestore.indexes.json` cubren
   /// estas consultas ordenadas por fecha y hora).

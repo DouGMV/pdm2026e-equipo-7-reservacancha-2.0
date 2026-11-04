@@ -202,11 +202,12 @@ class _FilaReserva extends StatelessWidget {
   Widget build(BuildContext context) {
     final colores = Theme.of(context).colorScheme;
     final confirmada = reserva.estado == EstadoReserva.confirmada;
+    final nombreCliente = reserva.usuarioNombre.trim();
     return ListTile(
       title: Text(reserva.canchaNombre),
       subtitle: Text(
         '${reserva.fecha} · ${formatearHora(reserva.hora)} · '
-        '${reserva.usuarioId}',
+        '${nombreCliente.isEmpty ? 'Cliente' : nombreCliente}',
       ),
       trailing: Column(
         mainAxisSize: MainAxisSize.min,

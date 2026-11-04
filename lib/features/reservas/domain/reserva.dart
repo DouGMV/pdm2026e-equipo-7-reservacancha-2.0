@@ -9,6 +9,7 @@ class Reserva {
     required this.canchaId,
     required this.canchaNombre,
     required this.usuarioId,
+    this.usuarioNombre = '',
     required this.fecha,
     required this.hora,
     required this.estado,
@@ -22,6 +23,10 @@ class Reserva {
   /// Copiado de la cancha para mostrarlo sin otra consulta.
   final String canchaNombre;
   final String usuarioId;
+
+  /// Copiado de la sesión para que el administrador vea el cliente sin otra
+  /// consulta. Puede faltar en reservas antiguas.
+  final String usuarioNombre;
 
   /// Fecha en formato `yyyy-MM-dd`.
   final String fecha;

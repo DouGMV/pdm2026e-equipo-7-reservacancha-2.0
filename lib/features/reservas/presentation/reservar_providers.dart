@@ -37,11 +37,13 @@ class ReservarController extends AsyncNotifier<void> {
   Future<void> reservar(SolicitudReserva solicitud) async {
     state = const AsyncLoading();
     final resultado = await AsyncValue.guard<void>(() async {
-      final uid = ref.read(sesionProvider).value?.uid;
-      if (uid == null) throw StateError('No hay sesión');
+      final usuario = ref.read(sesionProvider).value;
+      if (usuario == null) throw StateError('No hay sesión');
       await ref
           .read(reservasRepositoryProvider)
-          .crearReserva(solicitud.paraUsuario(uid));
+          .crearReserva(
+            solicitud.paraUsuario(usuario.uid, usuarioNombre: usuario.nombre),
+          );
     });
     if (!ref.mounted) return;
     // Con éxito o con "Horario no disponible", la disponibilidad cambió.

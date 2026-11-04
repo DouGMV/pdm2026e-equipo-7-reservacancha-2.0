@@ -352,4 +352,25 @@ void main() {
     expect(find.text('Pádel Club Mesoamericana'), findsOneWidget);
     expect(find.text('Cancha Sintética 1'), findsNothing);
   });
+
+  testWidgets('muestra el nombre del cliente o Cliente si no lo conoce', (
+    tester,
+  ) async {
+    const conNombre = Reserva(
+      id: 'cancha-5_20261022_7',
+      canchaId: 'cancha-5',
+      canchaNombre: 'Pádel Club Mesoamericana',
+      usuarioId: 'usuario-ana',
+      usuarioNombre: 'Ana Pérez',
+      fecha: '2026-10-22',
+      hora: 7,
+      estado: EstadoReserva.confirmada,
+      total: 175,
+    );
+    final repositorio = _ReservasEnMemoria([_sintetica, conNombre]);
+    await _mostrarPantalla(tester, repositorio);
+
+    expect(find.textContaining('Ana Pérez'), findsOneWidget);
+    expect(find.textContaining('Cliente'), findsOneWidget);
+  });
 }
