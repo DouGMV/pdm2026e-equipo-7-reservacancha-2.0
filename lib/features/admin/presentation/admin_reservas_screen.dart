@@ -20,10 +20,11 @@ class AdminReservasScreen extends ConsumerWidget {
         children: [
           _ChipsEstado(seleccionado: filtro.estado),
           Expanded(
-            // skipLoadingOnRefresh: false -> al cambiar el filtro o reintentar
-            // se ve el indicador de carga y no la lista anterior.
+            // skipLoadingOnRefresh deja la lista visible al deslizar para
+            // actualizar; en un error vuelve a mostrar el indicador para que
+            // Reintentar se note.
             child: reservas.when(
-              skipLoadingOnRefresh: false,
+              skipLoadingOnRefresh: !reservas.hasError,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => MensajeConAccion(
                 icono: Icons.cloud_off,
@@ -33,12 +34,17 @@ class AdminReservasScreen extends ConsumerWidget {
               ),
               data: (lista) => lista.isEmpty
                   ? _Vacio(estado: filtro.estado)
-                  : ListView.separated(
-                      itemCount: lista.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
-                      itemBuilder: (context, index) =>
-                          _ReservaDeslizable(reserva: lista[index]),
+                  : RefreshIndicator(
+                      onRefresh: () =>
+                          ref.refresh(reservasAdminProvider.future),
+                      child: ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: lista.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1),
+                        itemBuilder: (context, index) =>
+                            _ReservaDeslizable(reserva: lista[index]),
+                      ),
                     ),
             ),
           ),

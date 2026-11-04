@@ -18,10 +18,11 @@ class MisReservasScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mis reservas')),
-      // Sin skipLoadingOnRefresh, al reintentar seguiría viéndose el error
-      // hasta que llegue la respuesta y el botón parecería no hacer nada.
+      // skipLoadingOnRefresh deja la lista visible al deslizar para
+      // actualizar; en un error vuelve a mostrar el indicador para que
+      // Reintentar se note.
       body: reservas.when(
-        skipLoadingOnRefresh: false,
+        skipLoadingOnRefresh: !reservas.hasError,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => MensajeConAccion(
           icono: Icons.cloud_off,
@@ -38,7 +39,10 @@ class MisReservasScreen extends ConsumerWidget {
                 alPresionar: () =>
                     ref.read(navegacionProvider.notifier).ir(Pestana.canchas),
               )
-            : _ListaReservas(reservas: reservas),
+            : RefreshIndicator(
+                onRefresh: () => ref.refresh(misReservasProvider.future),
+                child: _ListaReservas(reservas: reservas),
+              ),
       ),
     );
   }
@@ -69,6 +73,7 @@ class _ListaReservas extends ConsumerWidget {
         });
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       children: [
         if (proximas.isNotEmpty) ...[
           const _Encabezado('Próximas'),
