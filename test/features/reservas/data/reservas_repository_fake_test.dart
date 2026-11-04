@@ -91,4 +91,53 @@ void main() {
       );
     });
   });
+
+  group('ReservasRepositoryFake - restaurar', () {
+    const reserva = Reserva(
+      id: 'cancha-1_20261030_18',
+      canchaId: 'cancha-1',
+      canchaNombre: 'Cancha 1',
+      usuarioId: 'ana',
+      fecha: '2026-10-30',
+      hora: 18,
+      estado: EstadoReserva.confirmada,
+      total: 150,
+    );
+
+    test('restaura la misma reserva eliminada', () async {
+      final repo = ReservasRepositoryFake(
+        demora: Duration.zero,
+        reservas: const [reserva],
+      );
+      await repo.eliminar(reserva.id);
+
+      await repo.restaurar(reserva);
+
+      final reservas = await repo.obtenerReservas();
+      expect(reservas.single.id, reserva.id);
+    });
+
+    test('no sobrescribe una hora que ya está confirmada', () async {
+      final repo = ReservasRepositoryFake(
+        demora: Duration.zero,
+        reservas: [
+          Reserva(
+            id: reserva.id,
+            canchaId: reserva.canchaId,
+            canchaNombre: reserva.canchaNombre,
+            usuarioId: 'beto',
+            fecha: reserva.fecha,
+            hora: reserva.hora,
+            estado: EstadoReserva.confirmada,
+            total: reserva.total,
+          ),
+        ],
+      );
+
+      expect(
+        () => repo.restaurar(reserva),
+        throwsA(isA<ReservaNoDisponibleException>()),
+      );
+    });
+  });
 }

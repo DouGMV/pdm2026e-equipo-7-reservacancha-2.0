@@ -38,7 +38,7 @@ class FiltroReservasController extends Notifier<FiltroReservas> {
 /// cambiarlo, Riverpod repite la consulta solo. El reintento automático se
 /// desactiva para que el error llegue a la pantalla.
 final reservasAdminProvider =
-    AsyncNotifierProvider<ReservasAdminController, List<Reserva>>(
+    AsyncNotifierProvider.autoDispose<ReservasAdminController, List<Reserva>>(
       ReservasAdminController.new,
       retry: (_, _) => null,
     );
@@ -70,18 +70,24 @@ class ReservasAdminController extends AsyncNotifier<List<Reserva>> {
     ]);
   }
 
-  /// Restaura la reserva idéntica (mismo id) y vuelve a consultar con el
-  /// filtro actual.
-  Future<void> restaurar(Reserva reserva) async {
-    await ref.read(reservasRepositoryProvider).restaurar(reserva);
-    if (!ref.mounted) return;
-    ref.invalidateSelf();
-    _actualizarMisReservas();
-  }
-
   /// La pestaña Mis reservas sigue viva en el `IndexedStack` de la barra:
   /// sin esto mostraría la lista anterior al volver a ella.
   void _actualizarMisReservas() {
     if (ref.mounted) ref.invalidate(misReservasProvider);
   }
+}
+
+/// Restaura la reserva idéntica (mismo id) y actualiza las listas.
+///
+/// Usa el contenedor y no el controlador: el SnackBar de Deshacer sigue
+/// visible al salir de la pantalla, y para entonces el controlador
+/// (`autoDispose`) ya se descartó.
+Future<void> restaurarReserva(
+  ProviderContainer contenedor,
+  Reserva reserva,
+) async {
+  await contenedor.read(reservasRepositoryProvider).restaurar(reserva);
+  contenedor
+    ..invalidate(reservasAdminProvider)
+    ..invalidate(misReservasProvider);
 }

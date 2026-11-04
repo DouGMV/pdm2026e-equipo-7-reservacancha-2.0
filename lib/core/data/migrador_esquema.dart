@@ -36,30 +36,57 @@ class MigradorEsquema {
   /// Aplica los pasos pendientes hasta [versionActual]. Si la base ya está
   /// al día no escribe nada; correrlo dos veces deja el mismo resultado.
   Future<void> migrar() async {
-    var version = await leerVersion();
+    final version = await leerVersion();
     if (version >= versionActual) return;
 
-    final batch = _firestore.batch();
     if (version < 2) {
-      await _pasoV1aV2(batch);
-      version = 2;
+      await _pasoV1aV2();
     }
-    batch.set(_esquema, {'version': version}, SetOptions(merge: true));
-    await batch.commit();
+
+    // La versión se guarda solo cuando todos los lotes terminaron.
+    await _esquema.set({'version': versionActual}, SetOptions(merge: true));
   }
 
   /// Paso 1 → 2: agrega `nombreNormalizado` a las canchas que no lo tengan.
-  Future<void> _pasoV1aV2(WriteBatch batch) async {
+  Future<void> _pasoV1aV2() async {
     final canchas = await _firestore
         .collection(FirestoreCollections.canchas)
         .get();
-    for (final doc in canchas.docs) {
-      final datos = doc.data();
-      if (datos.containsKey('nombreNormalizado')) continue;
-      final nombre = datos['nombre'] as String? ?? '';
-      batch.update(doc.reference, {
-        'nombreNormalizado': normalizarNombre(nombre),
-      });
+    final pendientes = [
+      for (final doc in canchas.docs)
+        if (!doc.data().containsKey('nombreNormalizado')) doc,
+    ];
+
+    for (final lote in dividirEnLotes(pendientes)) {
+      final batch = _firestore.batch();
+      for (final doc in lote) {
+        final nombre = doc.data()['nombre'] as String? ?? '';
+        batch.update(doc.reference, {
+          'nombreNormalizado': normalizarNombre(nombre),
+        });
+      }
+      await batch.commit();
     }
   }
+}
+
+/// Tamaño máximo de cada lote de escritura.
+///
+/// Firestore limita cada solicitud por tamaño (10 MiB), no por cantidad de
+/// documentos. 500 es un tamaño de lote prudente para no acercarse a ese
+/// límite, no un límite de la API.
+const tamanoLoteMigracion = 500;
+
+/// Divide [elementos] en lotes de hasta [tamano] elementos.
+List<List<T>> dividirEnLotes<T>(
+  List<T> elementos, {
+  int tamano = tamanoLoteMigracion,
+}) {
+  return [
+    for (var inicio = 0; inicio < elementos.length; inicio += tamano)
+      elementos.sublist(
+        inicio,
+        inicio + tamano > elementos.length ? elementos.length : inicio + tamano,
+      ),
+  ];
 }

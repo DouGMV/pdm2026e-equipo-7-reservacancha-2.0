@@ -239,4 +239,29 @@ void main() {
     expect(find.text('No hay canchas de Voleibol.'), findsNothing);
     expect(find.byType(CanchaCard), findsNWidgets(3));
   });
+
+  testWidgets('deslizar hacia abajo vuelve a consultar sin quitar la lista', (
+    tester,
+  ) async {
+    _pantallaAlta(tester);
+    await _mostrarPantalla(tester, repositorio);
+    await tester.pumpAndSettle();
+
+    repositorio
+      ..canchas = const [_cancha, _padel]
+      ..demora = const Duration(milliseconds: 100);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 500));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Mientras se actualiza, la lista anterior sigue visible.
+    expect(find.text('Cancha Sintética 1'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+
+    expect(repositorio.consultas, [null, null]);
+    expect(find.text('Cancha Sintética 1'), findsOneWidget);
+    expect(find.text('Pádel Club Mesoamericana'), findsOneWidget);
+  });
 }

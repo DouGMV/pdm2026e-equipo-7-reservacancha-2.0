@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -15,14 +17,21 @@ class AuthRepositoryFirebase implements AuthRepository {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
+  /// Registro en curso: `authStateChanges` puede emitir el usuario nuevo antes
+  /// de que se guarde `usuarios/{uid}`. Las sesiones esperan a que termine.
+  Completer<void>? _registroEnCurso;
+
   CollectionReference<Map<String, dynamic>> get _usuarios =>
       _firestore.collection(FirestoreCollections.usuarios);
 
   @override
   Stream<Usuario?> cambiosDeSesion() {
-    return _auth.authStateChanges().asyncMap(
-      (usuario) => usuario == null ? null : _leerUsuario(usuario),
-    );
+    return _auth.authStateChanges().asyncMap((usuario) async {
+      if (usuario == null) return null;
+      final registro = _registroEnCurso;
+      if (registro != null) await registro.future;
+      return _leerUsuario(usuario);
+    });
   }
 
   @override
@@ -48,6 +57,8 @@ class AuthRepositoryFirebase implements AuthRepository {
     required String telefono,
     required String contrasena,
   }) async {
+    final registro = Completer<void>();
+    _registroEnCurso = registro;
     try {
       final credencial = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
@@ -67,6 +78,21 @@ class AuthRepositoryFirebase implements AuthRepository {
       });
       return usuario;
     } on FirebaseAuthException catch (e) {
+      throw AuthException(mensajeDeErrorAuth(e.code));
+    } finally {
+      if (!registro.isCompleted) registro.complete();
+      if (identical(_registroEnCurso, registro)) _registroEnCurso = null;
+    }
+  }
+
+  @override
+  Future<void> recuperarContrasena({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      // No se avisa si la cuenta existe: revelaría qué correos están
+      // registrados.
+      if (e.code == 'user-not-found') return;
       throw AuthException(mensajeDeErrorAuth(e.code));
     }
   }

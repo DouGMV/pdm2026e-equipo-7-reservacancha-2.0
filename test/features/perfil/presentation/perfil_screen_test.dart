@@ -155,7 +155,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('No se pudo cerrar sesión. Intenta de nuevo.'),
+      find.text('No pudimos cerrar sesión. Intenta de nuevo.'),
       findsOneWidget,
     );
     expect(find.text('Ana López'), findsOneWidget);

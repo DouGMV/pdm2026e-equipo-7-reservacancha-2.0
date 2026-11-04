@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Guía visual provisional (issue #8): verde deportivo con Material 3.
-/// Se ajustará cuando el diseño de Figma esté validado.
+/// Tema de la app: verde deportivo con Material 3. Las reglas de uso
+/// (colores por rol, tipografía, componentes y textos) están en
+/// `docs/GUIA_VISUAL.md`.
 abstract final class AppTheme {
   static const Color semilla = Color(0xFF2E7D32);
 

@@ -78,6 +78,7 @@ class ReservasRepositoryFake implements ReservasRepository {
       canchaId: reserva.canchaId,
       canchaNombre: reserva.canchaNombre,
       usuarioId: reserva.usuarioId,
+      usuarioNombre: reserva.usuarioNombre,
       fecha: reserva.fecha,
       hora: reserva.hora,
       estado: EstadoReserva.cancelada,
@@ -94,9 +95,12 @@ class ReservasRepositoryFake implements ReservasRepository {
   @override
   Future<void> restaurar(Reserva reserva) async {
     await Future<void>.delayed(demora);
-    _reservas
-      ..removeWhere((r) => r.id == reserva.id)
-      ..add(reserva);
+    final indice = _reservas.indexWhere((r) => r.id == reserva.id);
+    if (indice != -1 && _reservas[indice].estado == EstadoReserva.confirmada) {
+      throw const ReservaNoDisponibleException();
+    }
+    if (indice != -1) _reservas.removeAt(indice);
+    _reservas.add(reserva);
   }
 
   /// Más recientes primero: el orden no depende de cuándo se restauró.
