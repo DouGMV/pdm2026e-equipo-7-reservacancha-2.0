@@ -2,6 +2,18 @@
 
 Aplicación móvil para reservar canchas deportivas. Proyecto del curso **Programación de Dispositivos Móviles** — Universidad Mesoamericana, sede Quetzaltenango. Equipo 7.
 
+## El problema
+
+Para reservar una cancha hay que preguntar qué horarios quedan libres, y dos personas pueden terminar con la misma cancha a la misma hora. El administrador, por su parte, necesita llevar el control de sus canchas y sus reservas en un solo lugar.
+
+ReservaCancha muestra los horarios libres de cada cancha y permite reservar desde el teléfono. Una misma cancha no se puede reservar dos veces a la misma hora, aunque dos personas confirmen a la vez ([ADR 0001](docs/adr/0001-evitar-reservas-duplicadas.md)).
+
+## Capturas
+
+| Listado de canchas | Filtro por deporte | Mis reservas | Perfil |
+|---|---|---|---|
+| ![Listado de canchas](docs/capturas/18-listado-canchas/1-listado.png) | ![Filtro por deporte](docs/capturas/18-listado-canchas/2-filtro-futbol.png) | ![Mis reservas](docs/capturas/30-navegacion/2-navegacion.png) | ![Perfil](docs/capturas/44-perfil/1-perfil.png) |
+
 ## Equipo
 
 | Integrante | Rol |
@@ -40,6 +52,8 @@ Flutter · Dart · Riverpod · go_router · Firebase (Authentication + Cloud Fir
 | [docs/PLAN.md](docs/PLAN.md) | Fases, sprints y entregables |
 | [docs/ROLES.md](docs/ROLES.md) | Roles, responsabilidades y asignación por sprint |
 | [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Capas, estructura de carpetas, modelo de datos |
+| [docs/adr/](docs/adr/README.md) | Decisiones de arquitectura y por qué se tomaron |
+| [docs/usuarios.md](docs/usuarios.md) | Pruebas con usuarios: qué intentaron, qué falló y qué PR lo arregló |
 | [docs/TECNOLOGIAS.md](docs/TECNOLOGIAS.md) | Tecnologías y paquetes |
 | [docs/GUIA_VISUAL.md](docs/GUIA_VISUAL.md) | Colores, tipografía, componentes, textos y capturas de las pantallas |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Flujo de Git, ramas, commits, PRs y revisión |
@@ -51,9 +65,8 @@ Flutter · Dart · Riverpod · go_router · Firebase (Authentication + Cloud Fir
 Requisitos: Flutter (canal estable), Android Studio o VS Code, un emulador o dispositivo Android, Git.
 
 ```bash
-git clone https://github.com/DouGMV/pdm2026e-equipo-7-reservacancha-2.0.git
+git clone -b main https://github.com/DouGMV/pdm2026e-equipo-7-reservacancha-2.0.git
 cd pdm2026e-equipo-7-reservacancha-2.0
-git checkout develop
 flutter pub get
 flutter run
 ```

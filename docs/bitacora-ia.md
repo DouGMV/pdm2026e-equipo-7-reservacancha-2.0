@@ -15,6 +15,19 @@ qué especificaste, qué revisaste y qué rechazaste.
 | Verificación | Cómo comprobaste que funciona (pruebas, dispositivo) |
 | Commit / PR | Enlace |
 
+## 2026-10-31 · @Lilfacce — Preparación de la exposición: ADR, plantilla de usuarios y README (#76)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Con la rúbrica de la exposición y la revisión del repositorio, dejar listo lo que falta: `docs/adr/`, `docs/usuarios.md`, capturas en el README y clonar `main`."
+- **Resultado:** 3 ADR, la plantilla de `docs/usuarios.md` con una guía de prueba, y el README con el problema y 4 capturas.
+- **Aceptado:** los ADR parten de decisiones reales del código, de `docs/ARQUITECTURA.md` y de `docs/TECNOLOGIAS.md`.
+- **Rechazado / corregido:**
+  - `docs/usuarios.md` **no** se llenó con personas inventadas: queda como plantilla hasta hacer las pruebas reales (#77).
+  - El aporte de Nathaly y Douglas no se resolvió con commits a su nombre: se abrieron issues con tareas reales de código (#78 y #79).
+  - Para el README no se usaron las capturas del #73 porque muestran una cancha de prueba y el mensaje "Tiene 1 reservas", de antes de corregirlo.
+- **Verificación:** se comprobó contra el código lo que afirman los ADR (`crearReserva`, `MigradorEsquema`, reglas de Firestore). Solo cambian documentos.
+- **Commit / PR:** issue #76.
+
 ## 2026-10-29 · @Lilfacce — Laboratorio S16: cierre del CRUD y pruebas de providers (#61, #65)
 
 - **Herramienta:** Claude Code.
