@@ -42,6 +42,8 @@ lib/
     ├── reservas/
     ├── perfil/
     └── admin/
+assets/
+└── logo/                       # logo.png, icono.png e icono_adaptativo.png
 test/                           # Replica la estructura de lib/
 ```
 
@@ -118,6 +120,7 @@ El rol se guarda en el documento del usuario en Firestore. Todo usuario se regis
 | canchaId | string | |
 | canchaNombre | string | "Cancha Sintética 1" (copiado para mostrar sin otra consulta) |
 | usuarioId | string | |
+| usuarioNombre | string | "Ana López" (copiado para que el admin vea quién reservó) |
 | fecha | string | "2026-10-15" (formato `yyyy-MM-dd`) |
 | hora | number | 18 (bloques de 1 hora) |
 | estado | string | "confirmada" \| "cancelada" |
@@ -134,6 +137,8 @@ La reserva se crea dentro de una **transacción** de Firestore:
 3. Si no existe, o existe pero está `cancelada` → escribir la reserva como `confirmada`.
 
 Si dos usuarios reservan el mismo horario al mismo tiempo, Firestore reintenta la transacción y solo uno lo logra. Para reservar varias horas seguidas se crea un documento por hora dentro de la misma transacción.
+
+**Restaurar una reserva cancelada** vuelve a leer el documento dentro de una transacción: si otra persona ya tomó ese horario (está `confirmada`), lanza "Horario no disponible" en lugar de sobrescribirla. Al cancelar solo cambia el estado, por lo que se conserva el `usuarioNombre` original.
 
 **Disponibilidad:** la pantalla de detalle consulta `reservas` donde `canchaId == X`, `fecha == Y` y `estado == 'confirmada'`, y marca como ocupadas esas horas entre `horaApertura` y `horaCierre`. Firestore pedirá crear un índice compuesto la primera vez; el enlace aparece en la consola de depuración.
 
