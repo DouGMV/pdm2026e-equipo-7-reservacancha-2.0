@@ -26,4 +26,4 @@ Para el nombre único de las canchas (#61) necesitábamos consultar un campo nue
 
 - `migrador_esquema_test.dart` crea una base en versión 1 con datos y comprueba que los datos siguen iguales, que existe el campo nuevo y que migrar otra vez no cambia nada.
 - Hasta que entre un admin, la base sigue en la versión anterior. Si la app falla al migrar, sigue funcionando y lo intenta en el siguiente inicio de sesión.
-- Un `WriteBatch` admite como máximo 500 escrituras. El issue #79 trata ese límite.
+- Firestore limita cada solicitud a 10 MiB, así que una colección muy grande no cabe en un solo `WriteBatch`. El issue #79 divide el paso en lotes.

@@ -65,7 +65,7 @@ Flutter · Dart · Riverpod · go_router · Firebase (Authentication + Cloud Fir
 Requisitos: Flutter (canal estable), Android Studio o VS Code, un emulador o dispositivo Android, Git.
 
 ```bash
-git clone https://github.com/DouGMV/pdm2026e-equipo-7-reservacancha-2.0.git
+git clone -b main https://github.com/DouGMV/pdm2026e-equipo-7-reservacancha-2.0.git
 cd pdm2026e-equipo-7-reservacancha-2.0
 flutter pub get
 flutter run
