@@ -1,6 +1,7 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/core/data/migrador_esquema.dart';
+import 'package:reservacancha/core/utils/normalizador.dart';
 
 /// Canchas tal como las guardaba la versión 1: sin `nombreNormalizado`.
 const _canchasV1 = {
@@ -109,5 +110,86 @@ void main() {
     final canchas = await leerCanchas();
     expect(canchas['c3']!['nombreNormalizado'], 'arena voleibol');
     expect(canchas, hasLength(3));
+  });
+
+  group('división en lotes', () {
+    test('0 elementos no forma lotes', () {
+      expect(dividirEnLotes(<int>[]), isEmpty);
+    });
+
+    test('1 elemento forma un lote de 1', () {
+      expect(dividirEnLotes([1]), [
+        [1],
+      ]);
+    });
+
+    test('500 elementos forman un lote de 500', () {
+      final lotes = dividirEnLotes(List.generate(500, (i) => i));
+
+      expect(lotes, hasLength(1));
+      expect(lotes.single, hasLength(500));
+    });
+
+    test('501 elementos forman lotes de 500 y 1', () {
+      final lotes = dividirEnLotes(List.generate(501, (i) => i));
+
+      expect(lotes.map((lote) => lote.length), [500, 1]);
+    });
+
+    test('1001 elementos forman lotes de 500, 500 y 1', () {
+      final lotes = dividirEnLotes(List.generate(1001, (i) => i));
+
+      expect(lotes.map((lote) => lote.length), [500, 500, 1]);
+    });
+  });
+
+  test('1001 canchas quedan migradas con sus datos y la versión 2', () async {
+    firestore = FakeFirebaseFirestore();
+    migrador = MigradorEsquema(firestore);
+    final canchas = {
+      for (var i = 0; i < 1001; i++)
+        'cancha-$i': {
+          'nombre': 'Cancha $i',
+          'deporte': 'futbol',
+          'precioPorHora': 100 + i,
+          'activa': true,
+        },
+    };
+    for (final MapEntry(:key, :value) in canchas.entries) {
+      await firestore.collection('canchas').doc(key).set(value);
+    }
+
+    await migrador.migrar();
+
+    final migradas = await leerCanchas();
+    expect(migradas, hasLength(1001));
+    for (final MapEntry(key: id, value: antes) in canchas.entries) {
+      final despues = Map.of(migradas[id]!);
+      expect(
+        despues.remove('nombreNormalizado'),
+        normalizarNombre(antes['nombre'] as String),
+      );
+      expect(despues, antes, reason: 'la cancha $id cambió otros campos');
+    }
+    expect(await versionGuardada(), 2);
+  });
+
+  test('una migración a medias se puede repetir y termina bien', () async {
+    await firestore.collection('config').doc('esquema').set({'version': 1});
+    await firestore.collection('canchas').doc('c1').update({
+      'nombreNormalizado': normalizarNombre(
+        _canchasV1['c1']!['nombre'] as String,
+      ),
+    });
+
+    await migrador.migrar();
+
+    final canchas = await leerCanchas();
+    for (final MapEntry(key: id, value: antes) in _canchasV1.entries) {
+      final despues = Map.of(canchas[id]!);
+      expect(despues.remove('nombreNormalizado'), _normalizados[id]);
+      expect(despues, antes);
+    }
+    expect(await versionGuardada(), 2);
   });
 }
