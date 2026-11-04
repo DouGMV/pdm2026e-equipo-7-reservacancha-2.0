@@ -64,10 +64,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.sports_soccer,
-                  size: 72,
-                  color: Theme.of(context).colorScheme.primary,
+                Image.asset(
+                  'assets/logo/logo.png',
+                  width: 96,
+                  height: 96,
+                  semanticLabel: 'ReservaCancha',
                 ),
                 const SizedBox(height: 32),
                 TextFormField(

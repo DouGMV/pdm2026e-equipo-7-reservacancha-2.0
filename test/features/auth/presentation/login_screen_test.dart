@@ -43,6 +43,16 @@ void main() {
     expect(find.text('¿No tienes cuenta? Regístrate'), findsOneWidget);
   });
 
+  testWidgets('muestra el logo de la app con etiqueta accesible', (
+    tester,
+  ) async {
+    await abrirApp(tester);
+
+    final logo = tester.widget<Image>(find.byType(Image));
+    expect((logo.image as AssetImage).assetName, 'assets/logo/logo.png');
+    expect(logo.semanticLabel, 'ReservaCancha');
+  });
+
   testWidgets('muestra errores de validación al enviar vacío', (tester) async {
     await abrirApp(tester);
 
