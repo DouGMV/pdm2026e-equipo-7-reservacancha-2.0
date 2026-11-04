@@ -25,5 +25,8 @@ abstract interface class AuthRepository {
     required String contrasena,
   });
 
+  /// Envía a [email] un correo para restablecer la contraseña.
+  Future<void> recuperarContrasena({required String email});
+
   Future<void> cerrarSesion();
 }

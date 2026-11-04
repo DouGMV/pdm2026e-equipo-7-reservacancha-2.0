@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/app.dart';
@@ -49,6 +51,22 @@ void main() {
 
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(find.text('Correo electrónico'), findsOneWidget);
+  });
+
+  testWidgets('la app usa español en los textos del sistema', (tester) async {
+    await _abrirApp(tester);
+
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.locale, const Locale('es'));
+    expect(app.supportedLocales, const [Locale('es')]);
+    expect(
+      app.localizationsDelegates,
+      contains(GlobalMaterialLocalizations.delegate),
+    );
+    expect(
+      app.localizationsDelegates,
+      contains(GlobalCupertinoLocalizations.delegate),
+    );
   });
 
   testWidgets('la migración corre al entrar un admin', (tester) async {

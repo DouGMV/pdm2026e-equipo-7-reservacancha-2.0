@@ -104,6 +104,6 @@ gh pr create --base develop --title "chore: crear estructura base del proyecto f
 
 Actualizar esta sección al cerrar cada sprint.
 
-- Sprint actual: 0 — Preparación
-- Firebase: pendiente de configurar (responsable: Nathaly)
-- Diseño en Figma: pendiente (responsable: Marco)
+- Entrega actual: cierre de la versión 2.1.0 — pulido de reservas, administración, identidad de la app, recuperación de contraseña y localización en español.
+- Firebase: configurado (`lib/firebase_options.dart`); los despliegues de reglas e índices se hacen desde Firebase Console o con la CLI, no desde el agente.
+- Diseño: `docs/GUIA_VISUAL.md` describe la app implementada con capturas reales.

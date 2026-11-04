@@ -21,11 +21,12 @@ class SolicitudReserva {
 
   num get total => cancha.precioPorHora;
 
-  Reserva paraUsuario(String usuarioId) => Reserva(
+  Reserva paraUsuario(String usuarioId, {String usuarioNombre = ''}) => Reserva(
     id: idReserva(canchaId: cancha.id, fecha: fecha, hora: hora),
     canchaId: cancha.id,
     canchaNombre: cancha.nombre,
     usuarioId: usuarioId,
+    usuarioNombre: usuarioNombre,
     fecha: fecha,
     hora: hora,
     estado: EstadoReserva.confirmada,

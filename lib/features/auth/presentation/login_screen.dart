@@ -42,11 +42,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (estado.hasError) {
       final mensaje = switch (estado.error) {
         AuthException(:final mensaje) => mensaje,
-        _ => 'No se pudo iniciar sesión. Intenta de nuevo.',
+        _ => 'No pudimos iniciar sesión. Intenta de nuevo.',
       };
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(mensaje)));
     }
+  }
+
+  Future<void> _recuperarContrasena() async {
+    var correo = _correo.text.trim();
+    final formKey = GlobalKey<FormState>();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recuperar contraseña'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            initialValue: correo,
+            keyboardType: TextInputType.emailAddress,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Correo electrónico',
+              prefixIcon: Icon(Icons.email_outlined),
+            ),
+            validator: validarCorreo,
+            onChanged: (valor) => correo = valor,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (formKey.currentState?.validate() ?? false) {
+                Navigator.of(context).pop(correo.trim());
+              }
+            },
+            child: const Text('Enviar'),
+          ),
+        ],
+      ),
+    );
+    if (email == null || !mounted) return;
+
+    await ref
+        .read(authControllerProvider.notifier)
+        .recuperarContrasena(email: email);
+    if (!mounted) return;
+
+    final estado = ref.read(authControllerProvider);
+    final mensaje = estado.hasError
+        ? switch (estado.error) {
+            AuthException(:final mensaje) => mensaje,
+            _ => 'No pudimos enviar el correo. Intenta de nuevo.',
+          }
+        : 'Si el correo está registrado, te enviamos un enlace.';
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   @override
@@ -64,10 +119,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  Icons.sports_soccer,
-                  size: 72,
-                  color: Theme.of(context).colorScheme.primary,
+                Image.asset(
+                  'assets/logo/logo.png',
+                  width: 96,
+                  height: 96,
+                  semanticLabel: 'ReservaCancha',
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -91,7 +147,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   validator: validarContrasena,
                 ),
-                const SizedBox(height: 24),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: enviando ? null : _recuperarContrasena,
+                    child: const Text('¿Olvidaste tu contraseña?'),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 FilledButton(
                   onPressed: enviando ? null : _iniciarSesion,
                   child: enviando

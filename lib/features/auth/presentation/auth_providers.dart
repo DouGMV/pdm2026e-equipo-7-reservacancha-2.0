@@ -54,6 +54,12 @@ class AuthController extends AsyncNotifier<void> {
     return _ejecutar(() => ref.read(authRepositoryProvider).cerrarSesion());
   }
 
+  Future<void> recuperarContrasena({required String email}) {
+    return _ejecutar(
+      () => ref.read(authRepositoryProvider).recuperarContrasena(email: email),
+    );
+  }
+
   Future<void> _ejecutar(Future<Object?> Function() accion) async {
     state = const AsyncLoading();
     final resultado = await AsyncValue.guard<void>(() async {

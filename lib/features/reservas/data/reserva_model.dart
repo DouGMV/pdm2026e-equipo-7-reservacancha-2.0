@@ -9,6 +9,7 @@ abstract final class ReservaModel {
       canchaId: datos['canchaId'] as String? ?? '',
       canchaNombre: datos['canchaNombre'] as String? ?? '',
       usuarioId: datos['usuarioId'] as String? ?? '',
+      usuarioNombre: datos['usuarioNombre'] as String? ?? '',
       fecha: datos['fecha'] as String? ?? '',
       hora: (datos['hora'] as num?)?.toInt() ?? 0,
       estado: datos['estado'] == 'cancelada'
@@ -24,6 +25,7 @@ abstract final class ReservaModel {
       'canchaId': reserva.canchaId,
       'canchaNombre': reserva.canchaNombre,
       'usuarioId': reserva.usuarioId,
+      'usuarioNombre': reserva.usuarioNombre,
       'fecha': reserva.fecha,
       'hora': reserva.hora,
       'estado': reserva.estado.name,

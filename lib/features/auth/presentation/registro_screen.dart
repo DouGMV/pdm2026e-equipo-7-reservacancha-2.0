@@ -51,7 +51,7 @@ class _RegistroScreenState extends ConsumerState<RegistroScreen> {
     if (estado.hasError) {
       final mensaje = switch (estado.error) {
         AuthException(:final mensaje) => mensaje,
-        _ => 'No se pudo crear la cuenta. Intenta de nuevo.',
+        _ => 'No pudimos crear la cuenta. Intenta de nuevo.',
       };
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(mensaje)));

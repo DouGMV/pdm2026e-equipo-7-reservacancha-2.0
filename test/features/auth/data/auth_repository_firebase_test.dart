@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -99,6 +101,42 @@ void main() {
     expect(doc.data()!['creadoEn'], isNotNull);
   });
 
+  test('la sesión emitida al registrarse espera el perfil guardado', () async {
+    final cambios = StreamController<User?>();
+    addTearDown(cambios.close);
+    final usuario = _UserMock();
+    when(() => usuario.uid).thenReturn('ana');
+    when(() => usuario.email).thenReturn('ana@correo.com');
+    when(() => usuario.displayName).thenReturn(null);
+    final credencial = _UserCredentialMock();
+    when(() => credencial.user).thenReturn(usuario);
+    when(() => auth.authStateChanges()).thenAnswer((_) => cambios.stream);
+    when(
+      () => auth.createUserWithEmailAndPassword(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+      ),
+    ).thenAnswer((_) async {
+      // authStateChanges emite el usuario antes de que registrar responda.
+      cambios.add(usuario);
+      return credencial;
+    });
+
+    final sesion = repositorio.cambiosDeSesion().where((u) => u != null).first;
+    final registro = repositorio.registrar(
+      nombre: 'Ana',
+      email: 'ana@correo.com',
+      telefono: '12345678',
+      contrasena: 'secreta1',
+    );
+
+    final emitida = await sesion;
+    await registro;
+
+    expect(emitida!.nombre, 'Ana');
+    expect(emitida.telefono, '12345678');
+  });
+
   test('un error de Firebase se traduce al español', () async {
     when(
       () => auth.signInWithEmailAndPassword(
@@ -116,6 +154,26 @@ void main() {
           'Correo o contraseña incorrectos',
         ),
       ),
+    );
+  });
+
+  test('recuperar contraseña envía el correo sin espacios', () async {
+    when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+        .thenAnswer((_) async {});
+
+    await repositorio.recuperarContrasena(email: ' ana@correo.com ');
+
+    verify(() => auth.sendPasswordResetEmail(email: 'ana@correo.com'))
+        .called(1);
+  });
+
+  test('recuperar contraseña no revela si la cuenta existe', () async {
+    when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+        .thenThrow(FirebaseAuthException(code: 'user-not-found'));
+
+    await expectLater(
+      repositorio.recuperarContrasena(email: 'nadie@correo.com'),
+      completes,
     );
   });
 

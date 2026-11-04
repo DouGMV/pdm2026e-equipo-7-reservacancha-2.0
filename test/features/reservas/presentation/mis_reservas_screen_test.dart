@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reservacancha/core/router/navegacion_provider.dart';
+import 'package:reservacancha/core/utils/formatters.dart';
 import 'package:reservacancha/features/reservas/data/reservas_repository_provider.dart';
 import 'package:reservacancha/features/reservas/domain/reserva.dart';
 import 'package:reservacancha/features/reservas/domain/reservas_repository.dart';
 import 'package:reservacancha/features/reservas/presentation/mis_reservas_screen.dart';
+import 'package:reservacancha/features/reservas/presentation/reservar_providers.dart';
 
 /// Repositorio falso que se puede hacer fallar, vaciar o volver lento.
 class _ReservasRepositoryControlable extends Fake
@@ -109,6 +111,22 @@ Future<void> _mostrarPantalla(
   );
 }
 
+Future<void> _mostrarPantallaConReloj(
+  WidgetTester tester,
+  ReservasRepository repositorio,
+  DateTime ahora,
+) {
+  return tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        reservasRepositoryProvider.overrideWithValue(repositorio),
+        relojProvider.overrideWithValue(() => ahora),
+      ],
+      child: const MaterialApp(home: MisReservasScreen()),
+    ),
+  );
+}
+
 void main() {
   late _ReservasRepositoryControlable repositorio;
 
@@ -144,7 +162,13 @@ void main() {
 
     expect(find.text('No pudimos cargar tus reservas.'), findsNothing);
     expect(find.text('Cancha Sintética 1'), findsOneWidget);
-    expect(find.text('2026-10-20 · 18:00'), findsOneWidget);
+    expect(
+      find.text(
+        '${formatearFechaLarga(DateTime(2026, 10, 20))} · '
+        '${formatearBloque(18)}',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Q150.00'), findsOneWidget);
     expect(find.text('Confirmada'), findsOneWidget);
   });
@@ -340,8 +364,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('No pudimos cancelar la reserva. Inténtalo de nuevo.'),
+      find.text('No pudimos cancelar la reserva. Intenta de nuevo.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('una reserva confirmada pasada va a Historial sin Cancelar', (
+    tester,
+  ) async {
+    repositorio.reservas = const [_reserva];
+
+    await _mostrarPantallaConReloj(
+      tester,
+      repositorio,
+      DateTime(2026, 11, 4, 12),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Historial'), findsOneWidget);
+    expect(find.text('Próximas'), findsNothing);
+    expect(find.text('Cancelar'), findsNothing);
+  });
+
+  testWidgets('una reserva confirmada futura va a Próximas con Cancelar', (
+    tester,
+  ) async {
+    repositorio.reservas = const [
+      Reserva(
+        id: 'cancha-1_20991231_18',
+        canchaId: 'cancha-1',
+        canchaNombre: 'Cancha Sintética 1',
+        usuarioId: 'usuario-demo',
+        fecha: '2099-12-31',
+        hora: 18,
+        estado: EstadoReserva.confirmada,
+        total: 150,
+      ),
+    ];
+
+    await _mostrarPantallaConReloj(
+      tester,
+      repositorio,
+      DateTime(2026, 11, 4, 12),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Próximas'), findsOneWidget);
+    expect(find.text('Historial'), findsNothing);
+    expect(find.text('Cancelar'), findsOneWidget);
   });
 }

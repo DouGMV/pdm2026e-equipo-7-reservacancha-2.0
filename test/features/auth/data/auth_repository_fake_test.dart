@@ -73,6 +73,18 @@ void main() {
     );
   });
 
+  test('recuperar contraseña registra el correo normalizado', () async {
+    await repositorio.recuperarContrasena(email: ' ANA@correo.com ');
+
+    expect(repositorio.correosDeRecuperacion, ['ana@correo.com']);
+  });
+
+  test('recuperar contraseña no revela si la cuenta existe', () async {
+    await repositorio.recuperarContrasena(email: 'nadie@correo.com');
+
+    expect(repositorio.correosDeRecuperacion, isEmpty);
+  });
+
   test('cerrar sesión emite null a quien ya escuchaba', () async {
     await repositorio.iniciarSesion(
       email: 'ana@correo.com',

@@ -105,4 +105,16 @@ void main() {
     expect(reserva.canchaNombre, 'Cancha 1');
     expect(reserva.total, 150);
   });
+
+  test('SolicitudReserva copia el nombre del usuario', () {
+    const solicitud = SolicitudReserva(
+      cancha: _cancha,
+      fecha: '2026-10-27',
+      hora: 8,
+    );
+
+    final reserva = solicitud.paraUsuario('ana', usuarioNombre: 'Ana Pérez');
+
+    expect(reserva.usuarioNombre, 'Ana Pérez');
+  });
 }
