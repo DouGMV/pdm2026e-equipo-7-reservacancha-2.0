@@ -11,6 +11,8 @@
 | Base de datos | `cloud_firestore` | Datos en tiempo real (disponibilidad actualizada al instante), transacciones para evitar reservas duplicadas, plan gratuito suficiente. |
 | Configuración Firebase | `firebase_core` + FlutterFire CLI | Genera `firebase_options.dart` para conectar la app. |
 | Fechas y moneda | `intl` | Formato de fechas en español y montos en quetzales (Q). |
+| Localización | `flutter_localizations` (SDK) | Textos de Material y widgets en español (`es`), incluidos los selectores de fecha. |
+| Identidad de la app | `flutter_launcher_icons` (dev) | Genera los íconos de lanzamiento de Android e iOS a partir de los assets de `assets/logo/`. |
 | Calidad de código | `flutter_lints` | Reglas de estilo comunes para todo el equipo. |
 | Pruebas | `flutter_test`, `mocktail` | Pruebas unitarias y de widgets con repositorios simulados. |
 

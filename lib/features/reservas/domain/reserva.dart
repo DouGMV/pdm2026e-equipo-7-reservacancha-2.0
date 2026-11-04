@@ -9,6 +9,7 @@ class Reserva {
     required this.canchaId,
     required this.canchaNombre,
     required this.usuarioId,
+    this.usuarioNombre = '',
     required this.fecha,
     required this.hora,
     required this.estado,
@@ -23,6 +24,10 @@ class Reserva {
   final String canchaNombre;
   final String usuarioId;
 
+  /// Copiado de la sesión para que el administrador vea el cliente sin otra
+  /// consulta. Puede faltar en reservas antiguas.
+  final String usuarioNombre;
+
   /// Fecha en formato `yyyy-MM-dd`.
   final String fecha;
 
@@ -30,4 +35,19 @@ class Reserva {
   final int hora;
   final EstadoReserva estado;
   final num total;
+
+  /// Se puede cancelar si sigue confirmada y su hora de inicio no ha llegado.
+  /// Si la fecha no se puede interpretar, no se puede cancelar.
+  bool sePuedeCancelar(DateTime ahora) {
+    if (estado != EstadoReserva.confirmada) return false;
+    final fechaReserva = DateTime.tryParse(fecha);
+    if (fechaReserva == null) return false;
+    final inicio = DateTime(
+      fechaReserva.year,
+      fechaReserva.month,
+      fechaReserva.day,
+      hora,
+    );
+    return ahora.isBefore(inicio);
+  }
 }

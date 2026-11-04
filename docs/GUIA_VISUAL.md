@@ -86,6 +86,12 @@ Material Icons. Cada deporte tiene su ícono (`lib/features/canchas/presentation
 
 Barra inferior: versión *outlined* para la pestaña inactiva y rellena para la activa (`sports_soccer`, `event_note`, `admin_panel_settings` y `person`). Estados: `cloud_off` para error de conexión, `search_off` para algo que ya no existe, `filter_alt_off` para un filtro sin resultados y `event_busy` para una reserva imposible.
 
+## Identidad de la app
+
+- La app se llama **ReservaCancha** en Android (`android:label`) e iOS (`CFBundleDisplayName` y `CFBundleName`).
+- El inicio de sesión muestra `assets/logo/logo.png` a 96 × 96 px, con `semanticLabel: 'ReservaCancha'`.
+- Los íconos de lanzamiento se generan con `flutter_launcher_icons` desde `assets/logo/icono.png` y `icono_adaptativo.png`; el fondo adaptativo es el verde semilla `#2E7D32`. No se editan a mano: se cambian los assets y se vuelve a ejecutar `dart run flutter_launcher_icons`.
+
 ## Componentes
 
 | Componente | Widget | Reglas |
@@ -95,6 +101,7 @@ Barra inferior: versión *outlined* para la pestaña inactiva y rellena para la 
 | **Selector de fecha y hora** | `ChoiceChip` | Fechas: 7 días, el primero dice **Hoy**, sin palomita. Horas: `HH:00`; las ocupadas y las que ya pasaron se ven deshabilitadas, no se ocultan. |
 | **Acción principal** | `FilledButton` | Ancho completo, al pie, dentro de `SafeArea`. Mientras se guarda, se deshabilita y muestra un `CircularProgressIndicator` de 20 px. El texto dice qué pasará: "Continuar · 18:00 – 19:00", "Confirmar reserva", "Crear", "Guardar cambios". |
 | **Acción secundaria** | `OutlinedButton` | Una por pantalla, por ejemplo **Cerrar sesión**. |
+| **Recuperar contraseña** | `TextButton` | Debajo del formulario de inicio de sesión: **¿Olvidaste tu contraseña?**. Abre un diálogo para escribir el correo y confirma con un `SnackBar`; si la cuenta no existe, el mensaje es "No encontramos una cuenta con ese correo". |
 | **Crear en una lista** | `FloatingActionButton.extended` | Con ícono `add` y texto (**Nueva**). |
 | **Barra inferior** | `NavigationBar` | Canchas, Mis reservas, Admin (solo administradores) y Perfil. Cada pestaña conserva su scroll y sus filtros. |
 | **Borrar** | `Dismissible` | Deslizar a la izquierda, fondo `error` con ícono de basurero. Primero se borra en la base; si falla, la fila vuelve. |
@@ -120,19 +127,17 @@ Toda pantalla que carga datos muestra uno de estos cuatro estados con `AsyncValu
 
 ## Textos
 
-- **Español y de tú:** "Elige una hora", "Intenta de nuevo".
+- **Español y de tú:** "Elige una hora", "Intenta de nuevo". La app fija `locale: Locale('es')` y usa `GlobalMaterialLocalizations`, así que los textos de Material (incluido el selector de fecha) también salen en español.
 - **El error dice qué pasó y qué hacer**, en primera persona del plural: "No pudimos guardar la cancha. Intenta de nuevo." Nunca se muestra el código de Firebase (`permission-denied`, `invalid-credential`…).
 - **Los errores de reglas de negocio explican la salida:** "Tiene 3 reservas. Desactívala para dejar de mostrarla." y "Ya existe una cancha con ese nombre."
 - **Los nombres de cancha van entre comillas latinas:** «Cancha Sintética 1» eliminada.
 - **Formatos:** precio `Q150.00/h` (`formatearMoneda`), hora `18:00` y bloque `18:00 – 19:00` (`formatearHora`, `formatearBloque`), fecha larga "lunes 26 de octubre" (`formatearFechaLarga`). En Firestore la fecha se guarda como `yyyy-MM-dd`.
 - **Los botones son verbos** que dicen el resultado: Crear, Guardar cambios, Confirmar reserva, Reintentar, Deshacer.
 
-Pendiente de unificar: algunos mensajes de reservas y de Perfil todavía dicen "No se pudo …"; la forma de la guía es "No pudimos …".
-
 ## Accesibilidad
 
 - Áreas táctiles de al menos 48 × 48.
-- La foto de la cancha tiene `semanticLabel` con el nombre, y el ícono que la reemplaza, el nombre del deporte.
+- La foto de la cancha tiene `semanticLabel` con el nombre, y el ícono que la reemplaza, el nombre del deporte. El logo del inicio de sesión también tiene `semanticLabel: 'ReservaCancha'`.
 - El estado y la disponibilidad se dicen con texto o con el componente deshabilitado, no solo con color.
 - Los colores salen del esquema de Material 3, que cumple el contraste mínimo entre cada rol y su `on…`.
 

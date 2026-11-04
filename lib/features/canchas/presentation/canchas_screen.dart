@@ -29,11 +29,11 @@ class CanchasScreen extends ConsumerWidget {
             alSeleccionar: filtroNotifier.seleccionarDeporte,
           ),
           Expanded(
-            // Sin skipLoadingOnRefresh, al reintentar seguiría viéndose el
-            // error hasta que llegue la respuesta y el botón parecería no
-            // hacer nada.
+            // skipLoadingOnRefresh deja la lista visible al deslizar para
+            // actualizar; en un error vuelve a mostrar el indicador para que
+            // Reintentar se note.
             child: canchas.when(
-              skipLoadingOnRefresh: false,
+              skipLoadingOnRefresh: !canchas.hasError,
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => MensajeConAccion(
                 icono: Icons.cloud_off,
@@ -42,7 +42,12 @@ class CanchasScreen extends ConsumerWidget {
                 alPresionar: recargar,
               ),
               data: (canchas) {
-                if (canchas.isNotEmpty) return _ListaCanchas(canchas: canchas);
+                if (canchas.isNotEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: () => ref.refresh(canchasProvider.future),
+                    child: _ListaCanchas(canchas: canchas),
+                  );
+                }
                 final deporte = filtro.deporte;
                 return deporte == null
                     ? MensajeConAccion(
@@ -75,6 +80,7 @@ class _ListaCanchas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       itemCount: canchas.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),

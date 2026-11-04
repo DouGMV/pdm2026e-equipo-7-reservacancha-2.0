@@ -74,7 +74,12 @@ class CanchaFormScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     final estado = ref.read(canchaFormControllerProvider);
-    if (estado.hasError) throw estado.error!;
+    if (estado.hasError) {
+      Error.throwWithStackTrace(
+        estado.error!,
+        estado.stackTrace ?? StackTrace.current,
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

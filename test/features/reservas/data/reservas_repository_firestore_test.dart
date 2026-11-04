@@ -10,11 +10,13 @@ Reserva _reserva(
   String fecha,
   int hora, {
   EstadoReserva estado = EstadoReserva.confirmada,
+  String usuarioNombre = '',
 }) => Reserva(
   id: 'c1_${fecha.replaceAll('-', '')}_$hora',
   canchaId: 'c1',
   canchaNombre: 'Cancha 1',
   usuarioId: usuarioId,
+  usuarioNombre: usuarioNombre,
   fecha: fecha,
   hora: hora,
   estado: estado,
@@ -84,6 +86,46 @@ void main() {
     expect(datos['usuarioId'], reserva.usuarioId);
     expect(datos['estado'], 'confirmada');
     expect(datos['creadoEn'], isNotNull);
+  });
+
+  test('restaurar no sobrescribe una hora que ya está confirmada', () async {
+    final reserva = _reserva(
+      'ana',
+      '2026-10-20',
+      18,
+      usuarioNombre: 'Ana Pérez',
+    );
+    await repositorio.eliminar(reserva.id);
+    await firestore
+        .collection('reservas')
+        .doc(reserva.id)
+        .set(ReservaModel.toMap(_reserva('beto', '2026-10-20', 18)));
+
+    await expectLater(
+      repositorio.restaurar(reserva),
+      throwsA(isA<ReservaNoDisponibleException>()),
+    );
+
+    final datos = (await firestore.collection('reservas').doc(reserva.id).get())
+        .data()!;
+    expect(datos['usuarioId'], 'beto');
+  });
+
+  test('guardar y leer conserva el nombre del usuario', () async {
+    final reserva = _reserva(
+      'ana',
+      '2026-10-30',
+      18,
+      usuarioNombre: 'Ana Pérez',
+    );
+
+    await repositorio.crearReserva(reserva);
+
+    final guardadas = await repositorio.obtenerReservas();
+    expect(
+      guardadas.firstWhere((r) => r.id == reserva.id).usuarioNombre,
+      'Ana Pérez',
+    );
   });
 
   test('cancelar solo cambia el estado', () async {

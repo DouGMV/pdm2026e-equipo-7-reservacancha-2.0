@@ -34,6 +34,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pedirRecuperacion(WidgetTester tester, String correo) async {
+    await tester.tap(
+      find.widgetWithText(TextButton, '¿Olvidaste tu contraseña?'),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextFormField),
+      ),
+      correo,
+    );
+    await tester.tap(find.widgetWithText(TextButton, 'Enviar'));
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('muestra el formulario de correo y contraseña', (tester) async {
     await abrirApp(tester);
 
@@ -41,6 +58,16 @@ void main() {
     expect(find.text('Correo electrónico'), findsOneWidget);
     expect(find.text('Contraseña'), findsOneWidget);
     expect(find.text('¿No tienes cuenta? Regístrate'), findsOneWidget);
+  });
+
+  testWidgets('muestra el logo de la app con etiqueta accesible', (
+    tester,
+  ) async {
+    await abrirApp(tester);
+
+    final logo = tester.widget<Image>(find.byType(Image));
+    expect((logo.image as AssetImage).assetName, 'assets/logo/logo.png');
+    expect(logo.semanticLabel, 'ReservaCancha');
   });
 
   testWidgets('muestra errores de validación al enviar vacío', (tester) async {
@@ -51,6 +78,30 @@ void main() {
 
     expect(find.text('Introduce el correo electrónico'), findsOneWidget);
     expect(find.text('Introduce la contraseña'), findsOneWidget);
+  });
+
+  testWidgets('envía el correo de recuperación y avisa', (tester) async {
+    await abrirApp(tester);
+
+    await pedirRecuperacion(tester, 'ana@correo.com');
+
+    expect(
+      find.text('Si el correo está registrado, te enviamos un enlace.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('con una cuenta inexistente muestra el mismo aviso', (
+    tester,
+  ) async {
+    await abrirApp(tester);
+
+    await pedirRecuperacion(tester, 'nadie@correo.com');
+
+    expect(
+      find.text('Si el correo está registrado, te enviamos un enlace.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('navega al listado de canchas tras iniciar sesión', (

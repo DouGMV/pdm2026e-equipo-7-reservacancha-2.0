@@ -146,7 +146,7 @@ class _BotonCerrarSesion extends ConsumerWidget {
     if (ref.read(authControllerProvider).hasError) {
       mensajes.showSnackBar(
         const SnackBar(
-          content: Text('No se pudo cerrar sesión. Intenta de nuevo.'),
+          content: Text('No pudimos cerrar sesión. Intenta de nuevo.'),
         ),
       );
     }

@@ -22,6 +22,7 @@ class AuthRepositoryFake implements AuthRepository {
   final Map<String, _Cuenta> _cuentas = {
     for (final cuenta in _cuentasDeEjemplo) cuenta.usuario.email: cuenta,
   };
+  final List<String> correosDeRecuperacion = [];
 
   Usuario? _actual;
   var _siguienteUid = 1;
@@ -71,6 +72,13 @@ class AuthRepositoryFake implements AuthRepository {
     _cuentas[correo] = _Cuenta(usuario, contrasena);
     _cambiarSesion(usuario);
     return usuario;
+  }
+
+  @override
+  Future<void> recuperarContrasena({required String email}) async {
+    await _esperar();
+    final correo = _normalizar(email);
+    if (_cuentas.containsKey(correo)) correosDeRecuperacion.add(correo);
   }
 
   @override
