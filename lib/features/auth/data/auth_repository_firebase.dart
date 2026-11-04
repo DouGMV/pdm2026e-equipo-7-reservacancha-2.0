@@ -86,6 +86,19 @@ class AuthRepositoryFirebase implements AuthRepository {
   }
 
   @override
+  Future<void> recuperarContrasena({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        e.code == 'user-not-found'
+            ? 'No encontramos una cuenta con ese correo'
+            : mensajeDeErrorAuth(e.code),
+      );
+    }
+  }
+
+  @override
   Future<void> cerrarSesion() => _auth.signOut();
 
   Future<Usuario> _leerUsuario(User usuario) async {

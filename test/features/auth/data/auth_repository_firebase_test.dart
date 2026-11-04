@@ -157,6 +157,32 @@ void main() {
     );
   });
 
+  test('recuperar contraseña envía el correo sin espacios', () async {
+    when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+        .thenAnswer((_) async {});
+
+    await repositorio.recuperarContrasena(email: ' ana@correo.com ');
+
+    verify(() => auth.sendPasswordResetEmail(email: 'ana@correo.com'))
+        .called(1);
+  });
+
+  test('recuperar contraseña traduce la cuenta inexistente', () async {
+    when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+        .thenThrow(FirebaseAuthException(code: 'user-not-found'));
+
+    await expectLater(
+      repositorio.recuperarContrasena(email: 'nadie@correo.com'),
+      throwsA(
+        isA<AuthException>().having(
+          (e) => e.mensaje,
+          'mensaje',
+          'No encontramos una cuenta con ese correo',
+        ),
+      ),
+    );
+  });
+
   test('un código desconocido usa el mensaje genérico', () {
     expect(
       mensajeDeErrorAuth('email-already-in-use'),

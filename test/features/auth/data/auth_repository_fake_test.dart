@@ -73,6 +73,25 @@ void main() {
     );
   });
 
+  test('recuperar contraseña registra el correo normalizado', () async {
+    await repositorio.recuperarContrasena(email: ' ANA@correo.com ');
+
+    expect(repositorio.correosDeRecuperacion, ['ana@correo.com']);
+  });
+
+  test('recuperar contraseña avisa si la cuenta no existe', () {
+    expect(
+      repositorio.recuperarContrasena(email: 'nadie@correo.com'),
+      throwsA(
+        isA<AuthException>().having(
+          (error) => error.mensaje,
+          'mensaje',
+          'No encontramos una cuenta con ese correo',
+        ),
+      ),
+    );
+  });
+
   test('cerrar sesión emite null a quien ya escuchaba', () async {
     await repositorio.iniciarSesion(
       email: 'ana@correo.com',

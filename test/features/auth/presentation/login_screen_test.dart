@@ -34,6 +34,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pedirRecuperacion(WidgetTester tester, String correo) async {
+    await tester.tap(
+      find.widgetWithText(TextButton, '¿Olvidaste tu contraseña?'),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextFormField),
+      ),
+      correo,
+    );
+    await tester.tap(find.widgetWithText(TextButton, 'Enviar'));
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('muestra el formulario de correo y contraseña', (tester) async {
     await abrirApp(tester);
 
@@ -61,6 +78,28 @@ void main() {
 
     expect(find.text('Introduce el correo electrónico'), findsOneWidget);
     expect(find.text('Introduce la contraseña'), findsOneWidget);
+  });
+
+  testWidgets('envía el correo de recuperación y avisa', (tester) async {
+    await abrirApp(tester);
+
+    await pedirRecuperacion(tester, 'ana@correo.com');
+
+    expect(
+      find.text('Te enviamos un correo para restablecer tu contraseña.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('con una cuenta inexistente avisa en español', (tester) async {
+    await abrirApp(tester);
+
+    await pedirRecuperacion(tester, 'nadie@correo.com');
+
+    expect(
+      find.text('No encontramos una cuenta con ese correo'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('navega al listado de canchas tras iniciar sesión', (
