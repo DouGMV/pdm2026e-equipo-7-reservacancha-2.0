@@ -38,7 +38,7 @@ class FiltroReservasController extends Notifier<FiltroReservas> {
 /// cambiarlo, Riverpod repite la consulta solo. El reintento automático se
 /// desactiva para que el error llegue a la pantalla.
 final reservasAdminProvider =
-    AsyncNotifierProvider<ReservasAdminController, List<Reserva>>(
+    AsyncNotifierProvider.autoDispose<ReservasAdminController, List<Reserva>>(
       ReservasAdminController.new,
       retry: (_, _) => null,
     );

@@ -320,4 +320,36 @@ void main() {
 
     expect(find.text('Cancha Sintética 1'), findsOneWidget);
   });
+
+  testWidgets('al volver a abrir la pantalla se ven los datos nuevos', (
+    tester,
+  ) async {
+    final repositorio = _ReservasEnMemoria([_sintetica]);
+    final contenedor = ProviderContainer(
+      overrides: [reservasRepositoryProvider.overrideWithValue(repositorio)],
+    );
+    addTearDown(contenedor.dispose);
+
+    Future<void> abrir(Widget home) async {
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: contenedor,
+          child: MaterialApp(home: home),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await abrir(const AdminReservasScreen());
+    expect(find.text('Cancha Sintética 1'), findsOneWidget);
+
+    repositorio.reservas
+      ..clear()
+      ..add(_padel);
+    await abrir(const SizedBox());
+    await abrir(const AdminReservasScreen());
+
+    expect(find.text('Pádel Club Mesoamericana'), findsOneWidget);
+    expect(find.text('Cancha Sintética 1'), findsNothing);
+  });
 }
