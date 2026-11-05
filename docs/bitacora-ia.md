@@ -333,3 +333,15 @@ qué especificaste, qué revisaste y qué rechazaste.
   - El primer borrador decía que `secondary` pintaba el indicador de la barra inferior y que `surfaceContainer` era el fondo de las tarjetas; en Material 3 el indicador usa `secondaryContainer` y las tarjetas `surfaceContainerLow`. Se corrigió.
   - Al revisar los textos aparecieron mensajes con "No se pudo …" junto a "No pudimos …"; la guía fija la segunda forma y deja anotado lo pendiente de unificar, sin tocar pantallas en este PR.
 - **Verificación:** enlaces a las 28 capturas comprobados; `flutter analyze` y `flutter test` en verde.
+
+## 2026-11-04 · @DouGMV — Resultados de la prueba con usuarios en `docs/usuarios.md` (#77)
+
+- **Herramienta:** Claude Code.
+- **Especificación:** "Pasar a `docs/usuarios.md` el informe real de la prueba de usuario del prototipo."
+- **Resultado:** resultado por persona, hallazgos con su estado actual en la app y el PR que los atiende, y guía para la próxima prueba.
+- **Aceptado:** identificar a los participantes con iniciales porque el repositorio es público.
+- **Rechazado / corregido:**
+  - No se agregaron frases textuales: el registro fue automático y el informe no las incluye.
+  - Se revisó cada hallazgo contra el código para anotar solo lo que la app cumple: dos resueltos, dos parciales y uno pendiente.
+- **Verificación:** se comprobó contra `main` la pantalla de confirmación, el inicio de sesión, la gestión de canchas y el detalle de horarios. Solo cambian documentos.
+- **Commit / PR:** rama `docs/77-resultados-usuarios`.
