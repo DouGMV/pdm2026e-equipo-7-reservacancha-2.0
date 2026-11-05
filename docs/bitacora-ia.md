@@ -342,6 +342,6 @@ qué especificaste, qué revisaste y qué rechazaste.
 - **Aceptado:** identificar a los participantes con iniciales porque el repositorio es público.
 - **Rechazado / corregido:**
   - No se agregaron frases textuales: el registro fue automático y el informe no las incluye.
-  - Se revisó cada hallazgo contra el código: cinco estado "resuelto" se bajaron a lo que de verdad cumple la app (dos resueltos, dos parciales y uno pendiente).
+  - Se revisó cada hallazgo contra el código para anotar solo lo que la app cumple: dos resueltos, dos parciales y uno pendiente.
 - **Verificación:** se comprobó contra `main` la pantalla de confirmación, el inicio de sesión, la gestión de canchas y el detalle de horarios. Solo cambian documentos.
 - **Commit / PR:** rama `docs/77-resultados-usuarios`.
